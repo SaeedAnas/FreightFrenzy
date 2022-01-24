@@ -26,9 +26,6 @@ public class ArmTuner extends LinearOpMode {
 
     public static double reference = 400;
 
-
-    ElapsedTime timer = new ElapsedTime();
-
     ArrayList<DcMotorEx> motors = new ArrayList<>();
 
     @Override

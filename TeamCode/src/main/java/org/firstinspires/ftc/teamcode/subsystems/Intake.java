@@ -25,19 +25,8 @@ public class Intake extends SubsystemBase {
     }
 
     public Intake(HardwareMap hardwareMap) {
-        this(hardwareMap, null);
-    }
-
-    public Intake(HardwareMap hardwareMap, Telemetry telemetry) {
         leftIntake = hardwareMap.get(DcMotorSimple.class, "leftIntake");
         rightIntake = hardwareMap.get(DcMotorSimple.class, "rightIntake");
-
-        this.telemetry = telemetry;
-    }
-
-    @Override
-    public void periodic() {
-        if (telemetry != null) telemetry.addData("Intake State", state);
     }
 
     public void setState(State state) {
