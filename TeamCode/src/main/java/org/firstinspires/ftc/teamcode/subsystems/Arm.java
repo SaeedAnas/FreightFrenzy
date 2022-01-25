@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -15,6 +16,7 @@ import static java.lang.Math.toRadians;
 
 import java.util.ArrayList;
 
+@Config
 public class Arm extends SubsystemBase {
     private DcMotorEx top;
     private DcMotorEx bottom;
@@ -35,7 +37,7 @@ public class Arm extends SubsystemBase {
 
     public State currentState = State.INTAKE;
 
-    public static double kP = 0;
+    public static double kP = 0.002;
     public static double kI = 0;
     public static double kD = 0;
 
