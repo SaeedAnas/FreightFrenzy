@@ -127,6 +127,10 @@ public class Robot {
             dumpy.setState(Dumpy.State.OUTTAKE);
         }
 
+        if (toolOp.left_bumper) {
+            arm.testProfile();
+        }
+
 
         drive.drive(driverOp);
         arm.run();
@@ -145,27 +149,6 @@ public class Robot {
                 break;
             }
         }
-    }
-
-    public void run() {
-        switch (currentState) {
-            case INTAKE: {
-//                if (sensor.detectBlock()) {
-//
-//                }
-
-            }
-            case SCORE: {
-
-            }
-            case DRIVE: {
-
-            }
-            default: {
-
-            }
-        }
-
     }
 
 }

@@ -4,12 +4,16 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.profile.MotionProfile;
+import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
+import com.acmerobotics.roadrunner.profile.MotionState;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -32,6 +36,7 @@ public class Arm extends SubsystemBase {
         MIDDLE(550),
         BOTTOM(650),
         INTAKE(65),
+        PROFILE(410),
         OFF(0);
 
         double position;
@@ -43,6 +48,8 @@ public class Arm extends SubsystemBase {
 
     public State currentState;
 
+    public MotionProfile currentProfile;
+
     double delta = 25;
 
     public static double kP = 0.0018;
@@ -52,6 +59,8 @@ public class Arm extends SubsystemBase {
     PIDCoefficients coeffs = new PIDCoefficients(kP, kI, kD);
 
     PIDFController controller = new PIDFController(coeffs);
+
+    ElapsedTime t = new ElapsedTime();
 
     public Arm(HardwareMap hardwareMap, Robot robot) {
         top = hardwareMap.get(DcMotorEx.class, "topArm");
@@ -73,6 +82,8 @@ public class Arm extends SubsystemBase {
         ref = robot;
 
         currentState = State.OFF;
+
+        currentProfile = null;
     }
 
     public void setPower(double power) {
@@ -107,6 +118,12 @@ public class Arm extends SubsystemBase {
         }, 150);
     }
 
+    public void testProfile() {
+        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0), new MotionState(410, 0,0), 10, 10);
+        t.reset();
+        setState(State.PROFILE);
+    }
+
     public void run() {
         switch (currentState) {
             case OFF: {
@@ -119,6 +136,14 @@ public class Arm extends SubsystemBase {
                     setState(State.OFF);
                     break;
                 }
+            }
+            case PROFILE: {
+                MotionState state = currentProfile.get(t.milliseconds());
+                controller.setTargetPosition(state.getX());
+                controller.setTargetVelocity(state.getV());
+                controller.setTargetAcceleration(state.getA());
+                double power = controller.update(getAverage());
+                setPower(power);
             }
             default: {
                 double power = controller.update(getAverage());
