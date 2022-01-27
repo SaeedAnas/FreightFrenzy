@@ -2,6 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="1.8">
+      <module name="FreightFrenzy.FtcRobotController" target="11" />
+      <module name="FreightFrenzy.TeamCode" target="11" />
       <module name="road-runner-quickstart.FtcRobotController" target="11" />
       <module name="road-runner-quickstart.TeamCode" target="11" />
     </bytecodeTargetLevel>
