@@ -2,15 +2,18 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import static org.firstinspires.ftc.teamcode.util.Extensions.cubeInput;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import java.util.ArrayList;
 
+@Config
 public class Drive extends SubsystemBase {
 
     DcMotorEx lf;
@@ -18,7 +21,16 @@ public class Drive extends SubsystemBase {
     DcMotorEx rf;
     DcMotorEx rb;
 
+    public static double mult = 0.75;
+
     ArrayList<DcMotorEx> motors = new ArrayList<>();
+
+    public enum State {
+        DRIVE,
+        OFF;
+    }
+
+    private State currentState;
 
     public Drive(HardwareMap hardwareMap) {
         lf = hardwareMap.get(DcMotorEx.class, "lf");
@@ -26,8 +38,8 @@ public class Drive extends SubsystemBase {
         rf = hardwareMap.get(DcMotorEx.class, "rf");
         rb = hardwareMap.get(DcMotorEx.class, "rb");
 
-        rf.setDirection(DcMotorSimple.Direction.REVERSE);
-        rb.setDirection(DcMotorSimple.Direction.REVERSE);
+        lf.setDirection(DcMotorSimple.Direction.REVERSE);
+        lb.setDirection(DcMotorSimple.Direction.REVERSE);
 
         motors.add(lf);
         motors.add(lb);
@@ -44,6 +56,7 @@ public class Drive extends SubsystemBase {
             motor.setMotorType(motorConfigurationType);
         }); // Sets the power decrease of Run using encoder to 0%, making the max speed back to 100%;
 
+        currentState = State.DRIVE;
     }
 
     public void drive(double x, double y, double rx) {
@@ -60,17 +73,29 @@ public class Drive extends SubsystemBase {
         // at least one is out of the range [-1, 1]
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
 
-        double frontLeftPower = (y + x + rx) / denominator;
-        double backLeftPower = (y - x + rx) / denominator;
-        double frontRightPower = (y - x - rx) / denominator;
-        double backRightPower = (y + x - rx) / denominator;
-
-        double mult = 0.5;
+        double frontLeftPower = (y + x - rx) / denominator;
+        double backLeftPower = (y - x - rx) / denominator;
+        double frontRightPower = (y - x + rx) / denominator;
+        double backRightPower = (y + x + rx) / denominator;
 
         lf.setPower(frontLeftPower * mult);
         lb.setPower(backLeftPower * mult);
         rf.setPower(frontRightPower * mult);
         rb.setPower(backRightPower * mult);
+
+    }
+
+    public void setState(State s) {
+        currentState = s;
+    }
+
+    public void drive(Gamepad gamepad) {
+        switch (currentState) {
+            case DRIVE: {
+                drive(gamepad.left_stick_x, gamepad.left_stick_y, gamepad.right_stick_x);
+                break;
+            }
+        }
 
     }
 }

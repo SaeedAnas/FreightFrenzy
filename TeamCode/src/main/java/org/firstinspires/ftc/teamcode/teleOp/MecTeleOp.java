@@ -3,7 +3,9 @@ package org.firstinspires.ftc.teamcode.teleOp;
 import static org.firstinspires.ftc.teamcode.util.Extensions.cubeInput;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
+import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.control.PIDFController;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -21,8 +23,11 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvInternalCamera2;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import java.util.ArrayList;
 
+@Config
 @TeleOp(name="Mecanum Drive", group="TeleOp")
 public class MecTeleOp extends LinearOpMode {
     DcMotorEx lf;
@@ -30,16 +35,9 @@ public class MecTeleOp extends LinearOpMode {
     DcMotorEx rf;
     DcMotorEx rb;
 
-    DcMotorSimple leftIntake;
-    DcMotorSimple rightIntake;
-
-    Arm arm;
-    Intake intake;
+    BNO055IMU imu;
 
     ArrayList<DcMotorEx> motors = new ArrayList<>();
-
-
-    static final double FEET_PER_METER = 3.28084;
 
     // Lens intrinsics
     // UNITS ARE PIXELS
@@ -53,17 +51,12 @@ public class MecTeleOp extends LinearOpMode {
     // UNITS ARE METERS
     double tagsize = 0.166;
 
-    int numFramesWithoutDetection = 0;
+    public static double mult = 0.75;
 
-    final float DECIMATION_HIGH = 3;
-    final float DECIMATION_LOW = 2;
-    final float THRESHOLD_HIGH_DECIMATION_RANGE_METERS = 1.0f;
-    final int THRESHOLD_NUM_FRAMES_NO_DETECTION_BEFORE_LOW_DECIMATION = 4;
-
-    boolean isOn = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // kf -> 13.302497733272313
         // 0 -> lb
         // 1 -> rb
         // 2 -> lf
@@ -74,39 +67,16 @@ public class MecTeleOp extends LinearOpMode {
         // 2 -> topArm -- ENCODER ARM
         // 3 -> bottomArm
 
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        WebcamName webcamName = hardwareMap.get(WebcamName.class, "camera");
-        OpenCvCamera camera = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-        TestPipeline aprilTagDetectionPipeline = new TestPipeline(tagsize, fx, fy, cx, cy);
-
-        camera.setPipeline(aprilTagDetectionPipeline);
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                // Usually this is where you'll want to start streaming from the camera (see section 4)
-
-                camera.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
-                FtcDashboard.getInstance().startCameraStream(camera, 0);
-            }
-            @Override
-            public void onError(int errorCode)
-            {
-                /*
-                 * This will be called if the camera could not be opened
-                 */
-            }
-        });
-
-
         lf = hardwareMap.get(DcMotorEx.class, "lf");
         lb = hardwareMap.get(DcMotorEx.class, "lb");
         rf = hardwareMap.get(DcMotorEx.class, "rf");
         rb = hardwareMap.get(DcMotorEx.class, "rb");
 
-        leftIntake = hardwareMap.get(DcMotorSimple.class, "intakeLeft");
-        rightIntake = hardwareMap.get(DcMotorSimple.class, "intakeRight");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imu.initialize(parameters);
+
 
         rf.setDirection(DcMotorSimple.Direction.REVERSE);
         rb.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -117,7 +87,7 @@ public class MecTeleOp extends LinearOpMode {
         motors.add(rb);
 
         motors.forEach((motor) -> motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER));
-        motors.forEach((motor) -> motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER));
+        motors.forEach((motor) -> motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER));
         motors.forEach((motor) -> motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE));
 
         motors.forEach((motor) -> {
@@ -130,16 +100,6 @@ public class MecTeleOp extends LinearOpMode {
 
         while (opModeIsActive()) {
             if(isStopRequested()) return;
-
-            if (gamepad1.x) {
-                    leftIntake.setPower(1);
-                    rightIntake.setPower(1);
-            }
-
-            if (gamepad1.b) {
-                leftIntake.setPower(0);
-                rightIntake.setPower(0);
-            }
 
             double y = (Math.abs(gamepad1.left_stick_y) > 0.05) ?  -gamepad1.left_stick_y : 0.0; // Remember, this is reversed!
             double x = (Math.abs(gamepad1.left_stick_x) > 0.05) ? gamepad1.left_stick_x * 1.1 : 0.0; // Counteract imperfect strafing
@@ -159,8 +119,6 @@ public class MecTeleOp extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
-            double mult = 0.5;
-
             lf.setPower(frontLeftPower * mult);
             lb.setPower(backLeftPower * mult);
             rf.setPower(frontRightPower * mult);
@@ -170,6 +128,7 @@ public class MecTeleOp extends LinearOpMode {
             telemetry.addData("lb", lb.getCurrentPosition());
             telemetry.addData("rf", rf.getCurrentPosition());
             telemetry.addData("rb", rb.getCurrentPosition());
+            telemetry.addData("x", imu.getAngularOrientation().firstAngle);
 
             telemetry.update();
 

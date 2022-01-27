@@ -17,6 +17,7 @@ public class DefaultDrive extends CommandBase {
         m_x = x;
         m_y = y;
         m_rx = rx;
+        addRequirements(drive);
     }
 
     @Override

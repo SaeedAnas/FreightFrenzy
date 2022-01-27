@@ -20,8 +20,8 @@ public class ArmTuner extends LinearOpMode {
     DcMotorEx ta;
     DcMotorEx ba;
 
-    public static double Kp = 0;
-    public static double Ki = 0;
+    public static double Kp = 0.002;
+    public static double Ki = 0.00013;
     public static double Kd = 0;
 
     public static double reference = 400;
@@ -61,7 +61,7 @@ public class ArmTuner extends LinearOpMode {
             motor.setMotorType(motorConfigurationType);
         }); // Sets the power decrease of Run using encoder to 0%, making the max speed back to 100%;
 
-        ta.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        ba.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motors.forEach((motor) -> motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER));
 
 
@@ -72,10 +72,10 @@ public class ArmTuner extends LinearOpMode {
 
             telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-            telemetry.addData("ta", ta.getCurrentPosition());
+            telemetry.addData("ta", ba.getCurrentPosition());
             telemetry.addData("reference", reference);
 
-            double power = controller.update(ta.getCurrentPosition());
+            double power = controller.update(ba.getCurrentPosition());
 
             telemetry.addData("power", power);
 

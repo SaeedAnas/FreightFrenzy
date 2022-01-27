@@ -7,10 +7,12 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
 
 import static java.lang.Math.toRadians;
 
@@ -21,13 +23,16 @@ public class Arm extends SubsystemBase {
     private DcMotorEx top;
     private DcMotorEx bottom;
 
+    private Robot ref;
+
     ArrayList<DcMotorEx> motors = new ArrayList<>();
 
     public enum State {
-        TOP(450),
+        TOP(410),
         MIDDLE(550),
         BOTTOM(650),
-        INTAKE(10);
+        INTAKE(100),
+        OFF(0);
 
         double position;
         State(double position) {
@@ -35,9 +40,11 @@ public class Arm extends SubsystemBase {
         }
     }
 
-    public State currentState = State.INTAKE;
+    public State currentState;
 
-    public static double kP = 0.002;
+    double delta = 25;
+
+    public static double kP = 0.0018;
     public static double kI = 0;
     public static double kD = 0;
 
@@ -45,7 +52,7 @@ public class Arm extends SubsystemBase {
 
     PIDFController controller = new PIDFController(coeffs);
 
-    public Arm(HardwareMap hardwareMap) {
+    public Arm(HardwareMap hardwareMap, Robot robot) {
         top = hardwareMap.get(DcMotorEx.class, "topArm");
         bottom = hardwareMap.get(DcMotorEx.class, "bottomArm");
 
@@ -62,7 +69,9 @@ public class Arm extends SubsystemBase {
             motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         });
 
-        setState(currentState);
+        ref = robot;
+
+        currentState = State.OFF;
     }
 
     public void setPower(double power) {
@@ -71,44 +80,41 @@ public class Arm extends SubsystemBase {
         });
     }
 
-    public int getPos() {
-        return top.getCurrentPosition();
-    }
-
-    public double getPower() {
-        return controller.update(getPos());
+    public void resetEncoders() {
+        motors.forEach((motor) -> {
+            motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        });
     }
 
     public void setState(State s) {
        controller.setTargetPosition(s.position);
+       currentState = s;
     }
 
-    public void toPos() {
-        double power = getPower();
-        setPower(power);
+    public void run() {
+        switch (currentState) {
+            case OFF: {
+                setPower(0);
+                resetEncoders();
+                break;
+            }
+            case INTAKE: {
+                double error = currentState.position - getAverage();
+                if (Math.abs(error) < delta) {
+                    setState(State.OFF);
+                    break;
+                }
+            }
+            default: {
+                double power = controller.update(getAverage());
+                setPower(power);
+            }
+        }
     }
 
-    public void toTop() {
-        setState(State.TOP);
-        toPos();
-    }
-
-    public void toMiddle() {
-        setState(State.MIDDLE);
-        toPos();
-    }
-
-    public void toBottom() {
-        setState(State.BOTTOM);
-        toPos();
-    }
-
-    public void toIntake() {
-        setState(State.INTAKE);
-        toPos();
-    }
-
-    public void off() {
-        setPower(0);
+    public double getAverage() {
+        double encoder = top.getCurrentPosition() + bottom.getCurrentPosition();
+        return encoder / 2;
     }
 }

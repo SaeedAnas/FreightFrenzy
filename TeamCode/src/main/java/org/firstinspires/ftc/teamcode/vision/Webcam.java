@@ -49,7 +49,7 @@ public class Webcam {
                 // Usually this is where you'll want to start streaming from the camera (see section 4)
 
                 camera.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
-                FtcDashboard.getInstance().startCameraStream(camera, 0);
+//                FtcDashboard.getInstance().startCameraStream(camera, 0);
             }
             @Override
             public void onError(int errorCode)
