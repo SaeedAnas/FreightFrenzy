@@ -22,7 +22,7 @@ public class Robot {
     public Arm arm;
     public Intake intake;
     public Dumpy dumpy;
-//    DistanceSensor sensor;
+    public DistanceSensor sensor;
     public Webcam webcam;
     Telemetry telemetry;
 
@@ -46,7 +46,7 @@ public class Robot {
         drive = new Drive(hardwareMap);
         arm = new Arm(hardwareMap, this);
         intake = new Intake(hardwareMap, this);
-//        sensor = new DistanceSensor(hardwareMap);
+        sensor = new DistanceSensor(hardwareMap);
         webcam = new Webcam(hardwareMap);
         dumpy = new Dumpy(hardwareMap, this);
 
@@ -83,20 +83,24 @@ public class Robot {
             telemetry.addData("leftv", intake.intakeLeft.getVelocity());
             telemetry.addData("rightv", intake.intakeRight.getVelocity());
 
-            double runningVelo = 1480;
-            double velocity = intake.intakeLeft.getVelocity();
+            telemetry.addData("distance",sensor.getDistance());
+
             telemetry.update();
         }
     }
 
     public void teleOp(Gamepad driverOp, Gamepad toolOp) {
         if (driverOp.x) {
-            intake.setState(Intake.State.RAMP);
+            intake.setState(Intake.State.INTAKE);
             dumpy.setState(Dumpy.State.INTAKE);
         }
 
         if (driverOp.b) {
             intake.setState(Intake.State.OFF);
+        }
+
+        if (driverOp.y) {
+            arm.dump();
         }
 
         if (driverOp.left_bumper) {
@@ -108,29 +112,27 @@ public class Robot {
         }
 
         if (driverOp.a) {
-            arm.setState(Arm.State.OFF);
-        }
-
-        if (toolOp.a) {
-            dumpy.setState(Dumpy.State.CLOSED);
-        }
-
-        if (toolOp.b) {
-            dumpy.setState(Dumpy.State.OPEN);
+            dumpy.intake();
+            intake.setState(Intake.State.INTAKE);
+            scheduleTask(dumpy::close, 150);
         }
 
         if (toolOp.x) {
+            intake.setState(Intake.State.INTAKE);
             dumpy.setState(Dumpy.State.INTAKE);
         }
 
-        if (toolOp.y) {
-            dumpy.setState(Dumpy.State.OUTTAKE);
+        if (toolOp.b) {
+            intake.setState(Intake.State.OFF);
         }
 
         if (toolOp.left_bumper) {
-            arm.testProfile();
+            arm.dump();
         }
 
+        if (toolOp.right_bumper) {
+            arm.powerDump();
+        }
 
         drive.drive(driverOp);
         arm.run();

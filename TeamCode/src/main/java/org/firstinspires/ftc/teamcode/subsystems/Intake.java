@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -20,9 +21,7 @@ public class Intake extends SubsystemBase {
     public static double delta = 500;
 
     public enum State {
-        RAMP(0.75),
         INTAKE(0.75),
-        INTAKING(0.75),
         OUTTAKE(-0.75),
         WAIT(0),
         OFF(0);
@@ -36,6 +35,8 @@ public class Intake extends SubsystemBase {
     public Intake(HardwareMap hardwareMap, Robot robot) {
         intakeLeft = hardwareMap.get(DcMotorEx.class, "intakeLeft");
         intakeRight = hardwareMap.get(DcMotorEx.class, "intakeRight");
+
+        intakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         currentState = State.OFF;
         ref = robot;
@@ -57,32 +58,15 @@ public class Intake extends SubsystemBase {
     public void run() {
 
         switch (currentState) {
-            case RAMP: {
-                if (atRunningVelo()) {
-                    setState(State.INTAKE);
-                }
-                setPower(currentState.power);
-            }
             case INTAKE: {
-                if (!atRunningVelo()) {
-                    setState(State.INTAKING);
-                }
                 setPower(currentState.power);
+                if (ref.sensor.detectBlock()) {
+                    setState(State.OFF);
+                    ref.dumpy.close();
+                }
                 break;
             }
             case WAIT: {
-                break;
-            }
-            case INTAKING: {
-                if (atRunningVelo()) {
-                    setState(State.WAIT);
-                    ref.scheduleTask(() -> {
-                        setState(State.OFF);
-                        ref.dumpy.close();
-                    }, 250);
-                    break;
-                }
-                setPower(currentState.power);
                 break;
             }
             default: {
