@@ -3,11 +3,8 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
 
 @Config
@@ -61,15 +58,13 @@ public class Intake extends SubsystemBase {
 
         switch (currentState) {
             case RAMP: {
-                double error = runningVelo - getVelocity();
-                if (Math.abs(error) < delta) {
+                if (atRunningVelo()) {
                     setState(State.INTAKE);
                 }
                 setPower(currentState.power);
             }
             case INTAKE: {
-                double error = runningVelo - getVelocity();
-                if (Math.abs(error) > delta) {
+                if (!atRunningVelo()) {
                     setState(State.INTAKING);
                 }
                 setPower(currentState.power);
@@ -79,8 +74,7 @@ public class Intake extends SubsystemBase {
                 break;
             }
             case INTAKING: {
-                double error = runningVelo - getVelocity();
-                if (Math.abs(error) < delta) {
+                if (atRunningVelo()) {
                     setState(State.WAIT);
                     ref.scheduleTask(() -> {
                         setState(State.OFF);
@@ -96,6 +90,11 @@ public class Intake extends SubsystemBase {
             }
 
         }
+    }
+
+    public boolean atRunningVelo() {
+        double error = runningVelo - getVelocity();
+        return Math.abs(error) < delta;
     }
 
 }

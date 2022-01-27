@@ -31,10 +31,11 @@ public class Arm extends SubsystemBase {
         TOP(410),
         MIDDLE(550),
         BOTTOM(650),
-        INTAKE(100),
+        INTAKE(65),
         OFF(0);
 
         double position;
+
         State(double position) {
             this.position = position;
         }
@@ -88,8 +89,22 @@ public class Arm extends SubsystemBase {
     }
 
     public void setState(State s) {
-       controller.setTargetPosition(s.position);
-       currentState = s;
+        controller.setTargetPosition(s.position);
+        currentState = s;
+    }
+
+    public void closeArm() {
+        ref.dumpy.close();
+        ref.scheduleTask(() -> {
+            setState(State.INTAKE);
+        }, 150);
+    }
+
+    public void openArm() {
+        ref.dumpy.close();
+        ref.scheduleTask(() -> {
+            setState(State.TOP);
+        }, 150);
     }
 
     public void run() {
@@ -100,8 +115,7 @@ public class Arm extends SubsystemBase {
                 break;
             }
             case INTAKE: {
-                double error = currentState.position - getAverage();
-                if (Math.abs(error) < delta) {
+                if (hasReached()) {
                     setState(State.OFF);
                     break;
                 }
@@ -111,6 +125,11 @@ public class Arm extends SubsystemBase {
                 setPower(power);
             }
         }
+    }
+
+    public boolean hasReached() {
+        double error = currentState.position - getAverage();
+        return Math.abs(error) < delta;
     }
 
     public double getAverage() {

@@ -100,11 +100,11 @@ public class Robot {
         }
 
         if (driverOp.left_bumper) {
-            arm.setState(Arm.State.TOP);
+            arm.openArm();
         }
 
         if (driverOp.right_bumper) {
-            arm.setState(Arm.State.INTAKE);
+            arm.closeArm();
         }
 
         if (driverOp.a) {
