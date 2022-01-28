@@ -31,7 +31,7 @@ public class AprilTagTeleOp extends LinearOpMode
     double cy = 720 / 2.0;
 
     // UNITS ARE METERS
-    double tagsize = 0.166;
+    double tagsize = 0.066;
 
     int ID_TAG_OF_INTEREST = 1; // Tag ID 18 from the 36h11 family
 
