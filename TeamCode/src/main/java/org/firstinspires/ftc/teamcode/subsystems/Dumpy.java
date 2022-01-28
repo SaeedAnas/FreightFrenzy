@@ -19,12 +19,27 @@ public class Dumpy {
 
     private Robot ref;
 
+//    public static double topOpen = 0.5;
+    public static double topOpen = 0.07;
+//    public static double topClosed = 0.65;
+    public static double topClosed = 0.2;
+//    public static double topCloser = 0.69;
+    public static double topCloser = 0.2;
+    //    public static double topPush = 0.75;
+    public static double topPush = 0.3;
+//    public static double topPower = 0.9;
+    public static double topPower = 0.3;
+
+    public static double bottomClosed = 0.3;
+    public static double bottomOpen = 0.15;
+
     public enum State {
-        INTAKE(0.5, 0),
-        CLOSED(0.65,0),
-        OPEN(0.65, 0.6),
+        INTAKE(topOpen, bottomClosed),
+        CLOSED(topClosed,bottomClosed),
+        OPEN(topCloser, bottomClosed),
         WAIT(0,0),
-        OUTTAKE(1,0.6);
+        POWER(topPower, bottomOpen),
+        OUTTAKE(topPush,bottomOpen);
 
         public double topPos;
         public double bottomPos;
@@ -60,14 +75,37 @@ public class Dumpy {
         setState(Dumpy.State.CLOSED);
     }
 
+    public void intake() {
+        setState(State.INTAKE);
+    }
+
+    public void outtake() {
+        setState(State.OUTTAKE);
+    }
+
+    public void powerOuttake() {
+        setState(State.POWER);
+    }
+
+    public void open() {
+        setState(State.OPEN);
+    }
+
 
     public void run() {
         switch (currentState) {
             case OUTTAKE: {
                 bottom.setPosition(currentState.bottomPos);
-                ref.scheduleTask(() -> top.setPosition(currentState.topPos), delay);
+                ref.scheduleTask(() -> top.setPosition(topPush), 150);
                 setState(State.WAIT);
                 break;
+            }
+            case POWER: {
+                bottom.setPosition(currentState.bottomPos);
+                ref.scheduleTask(() -> top.setPosition(topPower), 150);
+                setState(State.WAIT);
+                break;
+
             }
             case WAIT: {
                 break;

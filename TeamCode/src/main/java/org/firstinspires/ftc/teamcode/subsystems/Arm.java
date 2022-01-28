@@ -37,6 +37,7 @@ public class Arm extends SubsystemBase {
         BOTTOM(650),
         INTAKE(65),
         PROFILE(410),
+        UP(410),
         OFF(0);
 
         double position;
@@ -50,7 +51,9 @@ public class Arm extends SubsystemBase {
 
     public MotionProfile currentProfile;
 
-    double delta = 25;
+    private State level = State.TOP;
+
+    double delta = 50;
 
     public static double kP = 0.0018;
     public static double kI = 0;
@@ -105,17 +108,27 @@ public class Arm extends SubsystemBase {
     }
 
     public void closeArm() {
-        ref.dumpy.close();
+        ref.dumpy.intake();
         ref.scheduleTask(() -> {
             setState(State.INTAKE);
-        }, 150);
+        }, 250);
     }
 
     public void openArm() {
         ref.dumpy.close();
         ref.scheduleTask(() -> {
-            setState(State.TOP);
+            setState(State.UP);
         }, 150);
+    }
+
+    public void dump() {
+        ref.dumpy.outtake();
+        ref.scheduleTask(this::closeArm, 1000);
+    }
+
+    public void powerDump() {
+        ref.dumpy.powerOuttake();
+        ref.scheduleTask(this::closeArm, 1000);
     }
 
     public void testProfile() {
@@ -131,12 +144,6 @@ public class Arm extends SubsystemBase {
                 resetEncoders();
                 break;
             }
-            case INTAKE: {
-                if (hasReached()) {
-                    setState(State.OFF);
-                    break;
-                }
-            }
             case PROFILE: {
                 MotionState state = currentProfile.get(t.milliseconds());
                 controller.setTargetPosition(state.getX());
@@ -144,6 +151,26 @@ public class Arm extends SubsystemBase {
                 controller.setTargetAcceleration(state.getA());
                 double power = controller.update(getAverage());
                 setPower(power);
+                break;
+            }
+            case UP: {
+                double power = controller.update(getAverage());
+                setPower(power);
+
+                if (hasReached()) {
+                    ref.dumpy.open();
+                    ref.drive.slow();
+                    setState(level);
+                }
+                break;
+
+            }
+            case INTAKE: {
+                if (hasReached()) {
+                    ref.drive.normal();
+                    setState(State.OFF);
+                    break;
+                }
             }
             default: {
                 double power = controller.update(getAverage());

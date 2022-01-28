@@ -21,7 +21,7 @@ public class Drive extends SubsystemBase {
     DcMotorEx rf;
     DcMotorEx rb;
 
-    public static double mult = 0.75;
+    public static double mult = 0.5;
 
     ArrayList<DcMotorEx> motors = new ArrayList<>();
 
@@ -38,8 +38,8 @@ public class Drive extends SubsystemBase {
         rf = hardwareMap.get(DcMotorEx.class, "rf");
         rb = hardwareMap.get(DcMotorEx.class, "rb");
 
-        lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        lb.setDirection(DcMotorSimple.Direction.REVERSE);
+        rf.setDirection(DcMotorSimple.Direction.REVERSE);
+        rb.setDirection(DcMotorSimple.Direction.REVERSE);
 
         motors.add(lf);
         motors.add(lb);
@@ -59,6 +59,14 @@ public class Drive extends SubsystemBase {
         currentState = State.DRIVE;
     }
 
+    public void slow() {
+        mult = 0.3;
+    }
+
+    public void normal() {
+        mult = 0.5;
+    }
+
     public void drive(double x, double y, double rx) {
         x = (Math.abs(x) > 0.05) ? x * 1.1 : 0.0; // Counteract imperfect strafing
         y = (Math.abs(y) > 0.05) ?  -y : 0.0; // Remember, this is reversed!
@@ -73,10 +81,10 @@ public class Drive extends SubsystemBase {
         // at least one is out of the range [-1, 1]
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
 
-        double frontLeftPower = (y + x - rx) / denominator;
-        double backLeftPower = (y - x - rx) / denominator;
-        double frontRightPower = (y - x + rx) / denominator;
-        double backRightPower = (y + x + rx) / denominator;
+        double frontLeftPower = (y + x + rx) / denominator;
+        double backLeftPower = (y - x + rx) / denominator;
+        double frontRightPower = (y - x - rx) / denominator;
+        double backRightPower = (y + x - rx) / denominator;
 
         lf.setPower(frontLeftPower * mult);
         lb.setPower(backLeftPower * mult);

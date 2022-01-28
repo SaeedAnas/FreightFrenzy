@@ -28,8 +28,6 @@ public class MainTeleOp extends LinearOpMode {
         // 2 -> topArm
         // 3 -> bottomArm
 
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
         robot = new Robot(hardwareMap, telemetry);
 
         robot.stream();
