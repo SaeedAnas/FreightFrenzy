@@ -33,7 +33,7 @@ public class AprilTagTeleOp extends LinearOpMode
     // UNITS ARE METERS
     double tagsize = 0.066;
 
-    int ID_TAG_OF_INTEREST = 1; // Tag ID 18 from the 36h11 family
+    int ID_TAG_OF_INTEREST = 0; // Tag ID 18 from the 36h11 family
 
     AprilTagDetection tagOfInterest = null;
 
@@ -182,6 +182,8 @@ public class AprilTagTeleOp extends LinearOpMode
         }
 
         System.out.println(positionVar);
+        telemetry.addLine(String.valueOf(positionVar));
+        telemetry.update();
 
 
         /* You wouldn't have this in your autonomous, this is just to prevent the sample from ending */
