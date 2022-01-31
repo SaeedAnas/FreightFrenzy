@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class DistanceSensor {
     private final Rev2mDistanceSensor sensor;
 
-    public static double intakeDistance = 10.5;
+    public static double intakeDistance = 6;
 
     public DistanceSensor(HardwareMap hardwareMap) {
         sensor = hardwareMap.get(Rev2mDistanceSensor.class, "intakeSensor");

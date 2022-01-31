@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode.teleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.vision.AprilTagDetectionPipeline;
+import org.firstinspires.ftc.teamcode.vision.TestPipeline;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -13,11 +17,12 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 
 import java.util.ArrayList;
 
+@Config
 @TeleOp
 public class AprilTagTeleOp extends LinearOpMode
 {
     OpenCvCamera camera;
-    AprilTagDetectionPipeline aprilTagDetectionPipeline;
+//    AprilTagDetectionPipeline aprilTagDetectionPipeline;
 
     static final double FEET_PER_METER = 3.28084;
 
@@ -33,7 +38,10 @@ public class AprilTagTeleOp extends LinearOpMode
     // UNITS ARE METERS
     double tagsize = 0.166;
 
-    int ID_TAG_OF_INTEREST = 1; // Tag ID 18 from the 36h11 family
+    public static int ID_TAG_OF_INTEREST = 1; // Tag ID 18 from the 36h11 family
+
+    public static double first = -0.5;
+    public static double second = 0.1;
 
     AprilTagDetection tagOfInterest = null;
 
@@ -41,8 +49,9 @@ public class AprilTagTeleOp extends LinearOpMode
     public void runOpMode()
     {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
+//        aprilTagDetectionPipeline = new AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy);
+        TestPipeline aprilTagDetectionPipeline = new TestPipeline(tagsize, fx, fy, cx, cy);
 
         camera.setPipeline(aprilTagDetectionPipeline);
         camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
@@ -51,6 +60,7 @@ public class AprilTagTeleOp extends LinearOpMode
             public void onOpened()
             {
                 camera.startStreaming(800,448, OpenCvCameraRotation.UPRIGHT);
+                FtcDashboard.getInstance().startCameraStream(camera, 0);
             }
 
             @Override
@@ -60,9 +70,10 @@ public class AprilTagTeleOp extends LinearOpMode
             }
         });
 
-        telemetry.setMsTransmissionInterval(50);
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+//        telemetry.setMsTransmissionInterval(50);
 
-        int positionVar = 0;
+        int positionVar = 3;
         //left side: positionVar = 1
         //center: positionVar = 2
         //right side: positionVar = 3
@@ -190,6 +201,20 @@ public class AprilTagTeleOp extends LinearOpMode
 
     void tagToTelemetry(AprilTagDetection detection)
     {
+        int positionVar = 3;
+        if(tagOfInterest.pose.x <= first)
+        {
+            positionVar = 1;
+        }
+        else if(tagOfInterest.pose.x >= first && tagOfInterest.pose.x <= second)
+        {
+            positionVar = 2;
+        }
+        else {
+            positionVar = 3;
+        }
+
+        telemetry.addLine(String.format("Position: %d" , positionVar));
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
         telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x*FEET_PER_METER));
         telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y*FEET_PER_METER));

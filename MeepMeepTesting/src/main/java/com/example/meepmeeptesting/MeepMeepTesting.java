@@ -23,7 +23,7 @@ public class MeepMeepTesting {
 
 
 
-    public static double MAX_VEL = 35;
+    public static double MAX_VEL = 60;
     public static double MAX_ACCEL = 35;
     public static double MAX_ANG_VEL = toRadians(200);
     public static double MAX_ANG_ACCEL = toRadians(200);
@@ -34,10 +34,10 @@ public class MeepMeepTesting {
     //width = 13.25
 
 
-    private static final Pose2d blueStartingPosition = new Pose2d(8.34375, 65.375, toRadians(-90));
+    private static final Pose2d blueStartingPosition = new Pose2d(8.34375, 65.375, toRadians(90));
+    private static final Pose2d blueDuckPosition = new Pose2d(-33.96875, 65.375, toRadians(90));
     private static final Pose2d redStartingPosition =
-            blueStartingPosition.copy(blueStartingPosition.getX(), -blueStartingPosition.getY(),
-                    Angle.normDelta(blueStartingPosition.getHeading() + toRadians(180)));
+            blueStartingPosition.copy(blueStartingPosition.getX(), -blueStartingPosition.getY(), toRadians(-90));
 
     private static final Pose2d blueStartingPositionDuck = new Pose2d(-31.96875, 65.375, toRadians(0));
     private static final Pose2d redStartingPositionDuck =
@@ -52,43 +52,59 @@ public class MeepMeepTesting {
         double width = 12;
         double height = 12.625;
 
-        RoadRunnerBotEntity blueCycleRoute = new DefaultBotBuilder(mm)
+        RoadRunnerBotEntity blueCycleRouteSimple = new DefaultBotBuilder(mm)
                 .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
                 .setDimensions(width, height)
                 .setColorScheme(new ColorSchemeBlueDark())
                 .followTrajectorySequence(drive ->
                         drive.trajectorySequenceBuilder(blueStartingPosition)
-                                // Place preloaded freight
-                                .lineToConstantHeading(new Vector2d(-13,45))
+                                .addTemporalMarker(() -> { System.out.println("armUp");})
+                                .lineToConstantHeading(new Vector2d(-13, 55))
+                                .addTemporalMarker(() -> {
+                                    System.out.println("armDown");
+                                })
                                 .waitSeconds(0.5)
-                                .addDisplacementMarker(() -> System.out.println("Lift out"))
-
-                                // Intake
-                                .lineToSplineHeading(new Pose2d(14, 63.5, toRadians(180)))
-                                .lineTo(new Vector2d(56,63.5))
-                                // Outtake
-                                .lineTo(new Vector2d(14, 63.5))
-                                .splineTo(new Vector2d(-5, 45), toRadians(-105))
-
-                                // Intake
-                                .lineToSplineHeading(new Pose2d(14, 63.5, toRadians(180)))
-                                .lineTo(new Vector2d(56,63.5))
-
-                                // Outtake
-                                .lineTo(new Vector2d(14, 63.5))
-                                .splineTo(new Vector2d(-5, 45), toRadians(-105))
-
-                                // Intake
-                                .lineToSplineHeading(new Pose2d(14, 63.5, toRadians(180)))
-                                .lineTo(new Vector2d(56,63.5))
-
-                                // Outtake
-                                .lineTo(new Vector2d(14, 63.5))
-                                .splineTo(new Vector2d(-5, 45), toRadians(-105))
-
-
+                                .addTemporalMarker(() -> {
+                                   System.out.println("closeArm") ;
+                                })
+                                .splineTo(new Vector2d(40,64.75), toRadians(0))
                                 .build()
                 );
+
+        RoadRunnerBotEntity blueDuckRoute2 = new DefaultBotBuilder(mm)
+                .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
+                .setDimensions(width, height)
+                .setColorScheme(new ColorSchemeBlueDark())
+                .followTrajectorySequence(drive ->
+                    drive.trajectorySequenceBuilder(blueDuckPosition)
+                            .lineToSplineHeading(new Pose2d(-30,37, toRadians(155)))
+                            .addTemporalMarker(() -> {
+                                System.out.println("armDown");
+                            })
+                            .lineToConstantHeading(new Vector2d(-60, 36))
+//                            .splineTo(new Vector2d(60, 30), toRadians(0))
+                            .build()
+                );
+
+        RoadRunnerBotEntity redCycleRouteSimple = new DefaultBotBuilder(mm)
+                .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
+                .setDimensions(width, height)
+                .setColorScheme(new ColorSchemeBlueDark())
+                .followTrajectorySequence(drive ->
+                        drive.trajectorySequenceBuilder(redStartingPosition)
+                                .addTemporalMarker(() -> { System.out.println("armUp");})
+                                .lineToConstantHeading(new Vector2d(-13, -55))
+                                .addTemporalMarker(() -> {
+                                    System.out.println("armDown");
+                                })
+                                .waitSeconds(0.5)
+                                .addTemporalMarker(() -> {
+                                    System.out.println("closeArm") ;
+                                })
+                                .splineTo(new Vector2d(40,-65.75), toRadians(0))
+                                .build()
+                );
+
 
         RoadRunnerBotEntity redCycleRoute = new DefaultBotBuilder(mm)
                 .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
@@ -181,9 +197,10 @@ public class MeepMeepTesting {
                 .setBackground(MeepMeep.Background.FIELD_FREIGHTFRENZY_ADI_DARK)
                 .setTheme(new ColorSchemeRedDark())
                 .setBackgroundAlpha(0.95f)
-                .addEntity(blueCycleRoute)
+                .addEntity(blueCycleRouteSimple)
+//                .addEntity(redCycleRouteSimple)
 //                .addEntity(redCycleRoute)
-//                .addEntity(blueDuckRoute)
+                .addEntity(blueDuckRoute2)
 //                .addEntity(redDuckRoute)
                 .start();
 

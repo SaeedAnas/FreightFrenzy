@@ -3,61 +3,41 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.profile.MotionProfile;
 import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
-
-import static java.lang.Math.toRadians;
 
 import java.util.ArrayList;
 
 @Config
-public class Arm extends SubsystemBase {
+public class Arm2 extends SubsystemBase {
     private DcMotorEx top;
     private DcMotorEx bottom;
 
     private Robot ref;
 
+
     ArrayList<DcMotorEx> motors = new ArrayList<>();
 
-    public enum State {
-        TOP(415),
-        MIDDLE(535),
-        BOTTOM(650),
-        INTAKE(65),
-        PROFILE(410),
-        UP(410),
-        OFF(0);
-
-        double position;
-
-        State(double position) {
-            this.position = position;
-        }
-    }
-
     public State currentState;
-
     public MotionProfile currentProfile;
-
-    private State level = State.TOP;
 
     public static double delta = 100;
 
-    public static double kP = 0.0018;
+    public static double kP = 0.002;
     public static double kI = 0;
     public static double kD = 0;
+
+    public static double v = 0.5;
+    public static double a = 0.5;
 
     PIDCoefficients coeffs = new PIDCoefficients(kP, kI, kD);
 
@@ -65,7 +45,25 @@ public class Arm extends SubsystemBase {
 
     ElapsedTime t = new ElapsedTime();
 
-    public Arm(HardwareMap hardwareMap, Robot robot) {
+    public enum State {
+        TOP(410, v, a),
+        MIDDLE(535, v, a),
+        BOTTOM(650, v, a),
+        OFF(0, v, a),
+        INTAKE(65, 0.2,0.2);
+
+        double position;
+        double velo;
+        double accel;
+
+        State(double position, double velo, double accel) {
+            this.position = position;
+            this.velo = velo;
+            this.accel = accel;
+        }
+    }
+
+    public Arm2(HardwareMap hardwareMap, Robot robot) {
         top = hardwareMap.get(DcMotorEx.class, "topArm");
         bottom = hardwareMap.get(DcMotorEx.class, "bottomArm");
 
@@ -103,8 +101,18 @@ public class Arm extends SubsystemBase {
     }
 
     public void setState(State s) {
-        controller.setTargetPosition(s.position);
         currentState = s;
+        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(getAverage(), 0, 0), new MotionState(currentState.position, 0, 0), currentState.velo, currentState.accel);
+    }
+
+    public boolean hasReached() {
+        double error = currentState.position - getAverage();
+        return Math.abs(error) < delta;
+    }
+
+    public double getAverage() {
+        double encoder = top.getCurrentPosition() + bottom.getCurrentPosition();
+        return encoder / 2;
     }
 
     public void closeArm() {
@@ -114,11 +122,23 @@ public class Arm extends SubsystemBase {
         }, 250);
     }
 
-    public void openArm() {
+    public void openArm(State s) {
         ref.dumpy.close();
         ref.scheduleTask(() -> {
-            setState(State.UP);
+            setState(s);
         }, 150);
+    }
+
+    public void top() {
+        openArm(State.TOP);
+    }
+
+    public void middle() {
+        openArm(State.MIDDLE);
+    }
+
+    public void bottom() {
+        openArm(State.BOTTOM);
     }
 
     public void dump() {
@@ -131,44 +151,17 @@ public class Arm extends SubsystemBase {
         ref.scheduleTask(this::closeArm, 1000);
     }
 
-    public void testProfile() {
-        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0), new MotionState(410, 0,0), 10, 10);
-        t.reset();
-        setState(State.PROFILE);
-    }
 
     public void run() {
-        switch (currentState) {
+        switch(currentState) {
             case OFF: {
                 setPower(0);
                 resetEncoders();
                 break;
             }
-            case PROFILE: {
-                MotionState state = currentProfile.get(t.milliseconds());
-                controller.setTargetPosition(state.getX());
-                controller.setTargetVelocity(state.getV());
-                controller.setTargetAcceleration(state.getA());
-                double power = controller.update(getAverage());
-                setPower(power);
-                break;
-            }
-            case UP: {
-                double power = controller.update(getAverage());
-                setPower(power);
-
-                ref.drive.slow();
-                if (hasReached()) {
-                    ref.dumpy.open();
-                    setState(level);
-                }
-                break;
-
-            }
             case INTAKE: {
-                if (hasReached()) {
+                if(hasReached()) {
                     setState(State.OFF);
-                    break;
                 }
             }
             case TOP:
@@ -177,19 +170,15 @@ public class Arm extends SubsystemBase {
                 ref.drive.slow();
             }
             default: {
+                MotionState state = currentProfile.get(t.milliseconds());
+                controller.setTargetPosition(state.getX());
+                controller.setTargetVelocity(state.getV());
+                controller.setTargetAcceleration(state.getA());
                 double power = controller.update(getAverage());
                 setPower(power);
             }
         }
     }
 
-    public boolean hasReached() {
-        double error = currentState.position - getAverage();
-        return Math.abs(error) < delta;
-    }
 
-    public double getAverage() {
-        double encoder = top.getCurrentPosition() + bottom.getCurrentPosition();
-        return encoder / 2;
-    }
 }

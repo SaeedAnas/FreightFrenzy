@@ -20,15 +20,16 @@ public class Dumpy {
     private Robot ref;
 
 //    public static double topOpen = 0.5;
-    public static double topOpen = 0.07;
+    public static double topOpen = 0.1
+        ;
 //    public static double topClosed = 0.65;
-    public static double topClosed = 0.2;
+    public static double topClosed = 0.26;
 //    public static double topCloser = 0.69;
-    public static double topCloser = 0.2;
+    public static double topCloser = 0.26;
     //    public static double topPush = 0.75;
-    public static double topPush = 0.3;
+    public static double topPush = 0.38;
 //    public static double topPower = 0.9;
-    public static double topPower = 0.3;
+    public static double topPower = 0.38;
 
     public static double bottomClosed = 0.3;
     public static double bottomOpen = 0.15;

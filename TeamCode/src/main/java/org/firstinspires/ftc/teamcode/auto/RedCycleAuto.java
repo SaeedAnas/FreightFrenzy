@@ -2,15 +2,9 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import static java.lang.Math.toRadians;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -28,9 +22,10 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import java.util.ArrayList;
 
+
 @Config
-@Autonomous(group = "test")
-public class TrajectoryTest extends LinearOpMode {
+@Autonomous(group = "cycle")
+public class RedCycleAuto extends LinearOpMode {
     Robot robot;
     SampleMecanumDrive drive;
 
@@ -84,7 +79,10 @@ public class TrajectoryTest extends LinearOpMode {
     }
 
     State currentState = State.IDLE;
-    Level level = Level.BOTTOM;
+    Level level = Level.TOP;
+
+    public static double maxCycles = 2;
+    public static double currentCycle = 0;
 
     private static final Pose2d blueStartingPosition = new Pose2d(8.34375, 65.375, toRadians(90));
 
@@ -191,6 +189,7 @@ public class TrajectoryTest extends LinearOpMode {
                     if (robot.intake.hasFreight() || !drive.isBusy()) {
                         robot.intake.setState(Intake.State.OFF);
                         currentState = State.TO_HUB;
+                        currentCycle++;
                         toHub();
                     }
                     break;
@@ -239,7 +238,7 @@ public class TrajectoryTest extends LinearOpMode {
                         robot.autoIntake();
                     })
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 45)
-                    .splineTo(new Vector2d(45, 65.75), toRadians(0))
+                    .splineTo(new Vector2d(40, 65.75), toRadians(0))
                     .resetVelConstraint()
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 25)
                     .lineTo(new Vector2d(58, 63.75))
@@ -392,3 +391,4 @@ public class TrajectoryTest extends LinearOpMode {
 
 
 }
+

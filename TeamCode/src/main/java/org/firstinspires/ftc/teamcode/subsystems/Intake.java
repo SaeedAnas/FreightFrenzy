@@ -17,13 +17,14 @@ public class Intake extends SubsystemBase {
 
     private State currentState;
 
-    public static double runningVelo = 1480;
-    public static double delta = 500;
+    public static double p = 0.95;
 
     public enum State {
-        INTAKE(0.75),
-        OUTTAKE(-0.75),
+        INTAKE(p),
+        OUTTAKE(-p),
+        FIX(p),
         WAIT(0),
+        WAIT_FOR_ARM(0),
         OFF(0);
 
         double power;
@@ -60,13 +61,26 @@ public class Intake extends SubsystemBase {
         switch (currentState) {
             case INTAKE: {
                 setPower(currentState.power);
+                if (intakeLeft.isOverCurrent()) {
+                    setState(State.OUTTAKE);
+                    ref.scheduleTask(() -> {setState(State.OFF);}, 200);
+                }
                 if (ref.sensor.detectBlock()) {
-                    setState(State.OFF);
+                    setState(State.WAIT);
+                    ref.scheduleTask(() -> setState(State.OFF), 200);
                     ref.dumpy.close();
                 }
                 break;
             }
             case WAIT: {
+                break;
+            }
+            case WAIT_FOR_ARM: {
+                if (ref.arm.currentState == Arm.State.OFF) {
+                    ref.scheduleTask(() -> {
+                        setState(State.INTAKE);
+                    }, 1000);
+                }
                 break;
             }
             default: {
@@ -76,9 +90,7 @@ public class Intake extends SubsystemBase {
         }
     }
 
-    public boolean atRunningVelo() {
-        double error = runningVelo - getVelocity();
-        return Math.abs(error) < delta;
+    public boolean hasFreight() {
+        return currentState == State.OFF;
     }
-
 }

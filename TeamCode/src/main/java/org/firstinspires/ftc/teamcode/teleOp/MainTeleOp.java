@@ -30,7 +30,7 @@ public class MainTeleOp extends LinearOpMode {
 
         robot = new Robot(hardwareMap, telemetry);
 
-        robot.stream();
+//        robot.stream();
 
         waitForStart();
 

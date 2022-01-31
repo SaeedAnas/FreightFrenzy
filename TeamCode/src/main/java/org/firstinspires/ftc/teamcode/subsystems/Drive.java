@@ -60,7 +60,7 @@ public class Drive extends SubsystemBase {
     }
 
     public void slow() {
-        mult = 0.3;
+        mult = 0.25;
     }
 
     public void normal() {

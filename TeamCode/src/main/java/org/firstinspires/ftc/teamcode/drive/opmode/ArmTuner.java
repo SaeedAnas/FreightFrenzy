@@ -5,7 +5,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
+import com.acmerobotics.roadrunner.profile.MotionProfile;
+import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
+import com.acmerobotics.roadrunner.profile.MotionState;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -14,6 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
 
+@Disabled
 @Config
 @Autonomous(group = "drive")
 public class ArmTuner extends LinearOpMode {
@@ -27,6 +32,14 @@ public class ArmTuner extends LinearOpMode {
     public static double reference = 400;
 
     ArrayList<DcMotorEx> motors = new ArrayList<>();
+
+    public MotionProfile currentProfile;
+
+    ElapsedTime t = new ElapsedTime();
+
+    public static double velo = 10;
+    public static double accel = 10;
+    public static double pos = 400;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -67,6 +80,9 @@ public class ArmTuner extends LinearOpMode {
 
         waitForStart();
 
+        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0), new MotionState(pos, 0,0), velo, accel);
+        t.reset();
+
         while (opModeIsActive()) {
             if (isStopRequested()) return;
 
@@ -75,30 +91,14 @@ public class ArmTuner extends LinearOpMode {
             telemetry.addData("ta", ba.getCurrentPosition());
             telemetry.addData("reference", reference);
 
-            double power = controller.update(ba.getCurrentPosition());
-
-            telemetry.addData("power", power);
+            MotionState state = currentProfile.get(t.milliseconds());
+            controller.setTargetPosition(state.getX());
+            controller.setTargetVelocity(state.getV());
+            controller.setTargetAcceleration(state.getA());
+            double power = controller.update(getAverage());
 
             ta.setPower(power);
             ba.setPower(power);
-
-//            if (gamepad1.a) {
-//                ta.setTargetPosition(400);
-//                ta.setPower(power);
-//                ba.setPower(power);
-//            } else {
-//                ta.setPower(0);
-//                ba.setPower(0);
-//            }
-//
-//            if (gamepad1.b) {
-//                ta.setPower(-power);
-//                ba.setPower(-power);
-//            } else {
-//                ta.setPower(0);
-//                ba.setPower(0);
-//            }
-
 
             telemetry.update();
 
@@ -106,37 +106,9 @@ public class ArmTuner extends LinearOpMode {
 
     }
 
-//    public double PIDControl(double refernce, double state) {
-//        double error = refernce - state;
-//        double errorChange = error - lastError;
-//
-//        currentFilterEstimate = (a * previousFilterEstimate) + (1-a) * errorChange;
-//        previousFilterEstimate = currentFilterEstimate;
-//
-//        double derivative = currentFilterEstimate / timer.seconds();
-//
-//        integralSum += error * timer.seconds();
-//
-//        if (integralSum > maxIntegralSum) {
-//            integralSum = maxIntegralSum;
-//        }
-//
-//        if (integralSum < -maxIntegralSum) {
-//            integralSum = -maxIntegralSum;
-//        }
-//
-//        if (refernce != lastReference) {
-//            integralSum = 0;
-//        }
-//
-//
-//        lastError = error;
-//
-//        lastReference = refernce;
-//        timer.reset();
-//
-//        double output = (Kp * error) + (Ki * integralSum) + (Kd * derivative);
-//
-//        return output;
-//    }
+    public double getAverage() {
+        double encoder = ta.getCurrentPosition() + ba.getCurrentPosition();
+        return encoder / 2;
+    }
+
 }
