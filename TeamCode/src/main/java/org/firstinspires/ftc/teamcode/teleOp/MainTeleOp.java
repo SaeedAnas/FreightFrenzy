@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleOp;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,7 +11,6 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 @TeleOp(name="Main TeleOp", group="TeleOp")
 public class MainTeleOp extends LinearOpMode {
-
     Robot robot;
 
     @Override

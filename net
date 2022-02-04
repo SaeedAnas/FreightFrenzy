@@ -1,0 +1,12 @@
+#!/bin/bash
+# Get terminal args
+ARGS=$@
+
+if [ "$ARGS" == "c" ]; then
+	adb connect 192.167.43.1:5555
+elif [ "$ARGS" == "d" ]; then
+	adb disconnect
+else
+	echo "Usage: net [c|d]"
+	exit 1
+fi
