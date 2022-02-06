@@ -18,7 +18,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
 
-@Disabled
+//@Disabled
 @Config
 @Autonomous(group = "drive")
 public class ArmTuner extends LinearOpMode {
