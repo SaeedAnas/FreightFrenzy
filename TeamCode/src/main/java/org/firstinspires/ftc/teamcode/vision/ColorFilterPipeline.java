@@ -25,13 +25,13 @@ public class ColorFilterPipeline extends OpenCvPipeline {
 
     public static int xPos = 0;
 
-    public static int lowerh = 20;
-    public static int lowers = 36;
-    public static int lowerv = 150;
+    public static int lowerh = 23;
+    public static int lowers = 40;
+    public static int lowerv = 71;
 
-    public static int upperh = 28;
-    public static int uppers = 153;
-    public static int upperv = 237;
+    public static int upperh = 27;
+    public static int uppers = 148;
+    public static int upperv = 218;
 
     public Scalar lower = new Scalar(lowerh, lowers, lowerv);
     public Scalar upper = new Scalar(upperh, uppers, upperv);
