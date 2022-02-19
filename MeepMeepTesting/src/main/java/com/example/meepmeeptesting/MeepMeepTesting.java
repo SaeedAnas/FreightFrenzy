@@ -65,6 +65,7 @@ public class MeepMeepTesting {
                                 .addTemporalMarker(() -> {
                                     System.out.println("closeArm");
                                 })
+<<<<<<< HEAD
                                 // Intake
                                 .splineTo(new Vector2d(40, 64.75), toRadians(0))
                                 .lineTo(new Vector2d(60, 64.75))
@@ -175,6 +176,10 @@ public class MeepMeepTesting {
                                 .splineTo(new Vector2d(-8, 60), toRadians(0))
                                 .splineTo(new Vector2d(25, 64.75), toRadians(0))
                                 .lineTo(new Vector2d(35, 64.75))
+=======
+                                .splineTo(new Vector2d(13, 64), toRadians((0)))
+                                .splineTo(new Vector2d(40,64.75), toRadians(0))
+>>>>>>> 40b7cca87bbbb0c1129c289d0e798c9a279701b3
                                 .build()
                 );
 

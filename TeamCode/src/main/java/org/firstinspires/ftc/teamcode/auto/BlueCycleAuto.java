@@ -360,8 +360,8 @@ public class BlueCycleAuto extends LinearOpMode {
     public void intake() {
         robot.intake();
         TrajectorySequence intake = drive.trajectorySequenceBuilder(PoseStorage.currentPose)
-                .lineTo(new Vector2d(58, 64.5))
-//                .splineTo(new Vector2d(58, 61), toRadians(0))
+                .splineTo(new Vector2d(13, 64), toRadians((0)))
+                .splineTo(new Vector2d(40,64.75), toRadians(0))
                 .build();
 
         drive.followTrajectorySequenceAsync(intake);
