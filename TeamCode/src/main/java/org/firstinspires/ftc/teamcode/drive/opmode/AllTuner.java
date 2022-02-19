@@ -73,6 +73,7 @@ public class AllTuner extends LinearOpMode {
         robot = new Robot(hardwareMap);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        robot.stream();
 
 
         waitForStart();

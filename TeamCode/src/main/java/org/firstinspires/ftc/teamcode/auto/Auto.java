@@ -50,6 +50,7 @@ public class Auto extends LinearOpMode {
         drive = robot.drive;
 
         drive.setPoseEstimate(blueStartingPosition);
+        PoseStorage.currentPose = blueStartingPosition;
 
         waitForStart();
 
@@ -142,7 +143,7 @@ public class Auto extends LinearOpMode {
                 .addDisplacementMarker(() -> {
                     System.out.println("intake");
                 })
-                .lineTo(new Vector2d(60, 64.75))
+                .lineTo(new Vector2d(45, 64.75))
                 .build();
 
         TrajectorySequence toIntake = drive.trajectorySequenceBuilder(PoseStorage.currentPose)

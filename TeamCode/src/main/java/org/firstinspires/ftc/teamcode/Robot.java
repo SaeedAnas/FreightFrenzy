@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.SecondArm;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.util.PoseStorage;
+import org.firstinspires.ftc.teamcode.vision.ColorFilterPipeline;
 import org.firstinspires.ftc.teamcode.vision.Webcam;
 
 import java.util.concurrent.ExecutorService;
@@ -82,7 +83,7 @@ public class Robot {
     }
 
     public void stream() {
-        webcam.start();
+        webcam.colorfilter().start();
     }
 
     public void log() {
@@ -95,6 +96,7 @@ public class Robot {
             telemetry.addData("x", poseEstimate.getX());
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
+            telemetry.addData("xPos", ColorFilterPipeline.xPos);
             telemetry.update();
         }
     }

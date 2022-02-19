@@ -40,20 +40,24 @@ public class Webcam {
         return this;
     }
 
+    public Webcam colorfilter() {
+        camera.setPipeline(new ColorFilterPipeline());
+
+        return this;
+    }
+
     public void start() {
-        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
+        camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
-            public void onOpened()
-            {
+            public void onOpened() {
                 // Usually this is where you'll want to start streaming from the camera (see section 4)
 
                 camera.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
-//                FtcDashboard.getInstance().startCameraStream(camera, 0);
+                FtcDashboard.getInstance().startCameraStream(camera, 0);
             }
+
             @Override
-            public void onError(int errorCode)
-            {
+            public void onError(int errorCode) {
                 /*
                  * This will be called if the camera could not be opened
                  */
