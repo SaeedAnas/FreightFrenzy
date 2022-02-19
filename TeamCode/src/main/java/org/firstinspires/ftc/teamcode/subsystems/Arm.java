@@ -3,27 +3,26 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.profile.MotionProfile;
 import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
-
-import static java.lang.Math.toRadians;
 
 import java.util.ArrayList;
 
 @Config
 public class Arm extends SubsystemBase {
+
+    public static double TICKS_PER_REV = 1425.1;
+    public static double ZERO_ANGLE = 0;
+
     private DcMotorEx top;
     private DcMotorEx bottom;
 
@@ -31,33 +30,45 @@ public class Arm extends SubsystemBase {
 
     ArrayList<DcMotorEx> motors = new ArrayList<>();
 
+    public static double topv = 0.18;
+    public static double topa = 0.05;
+
+    public static double intakev = 0.18;
+    public static double intakea = 0.05;
+
     public enum State {
-        TOP(415),
-        MIDDLE(535),
-        BOTTOM(650),
-        INTAKE(65),
-        PROFILE(410),
-        UP(410),
-        OFF(0);
+        TOP(90, topv, topa),
+        MIDDLE(130, intakev, intakea),
+        BOTTOM(150, 0.13, 0.05),
+        INTAKE(10, 0.08, 0.05),
+        PROFILE(90, 0.18, 0.05),
+        UP(90, 0.18, 0.05),
+        OFF(0, 0.01, 0.01);
 
-        double position;
+        double angle;
+        double v;
+        double a;
 
-        State(double position) {
-            this.position = position;
+        State(double angle, double v, double a) {
+            this.angle = angle;
+            this.v = v;
+            this.a = a;
         }
     }
 
     public State currentState;
-
     public MotionProfile currentProfile;
 
     private State level = State.TOP;
 
-    public static double delta = 100;
+    public static double delta = 3;
 
-    public static double kP = 0.0018;
+    public static double kP = 0.013;
     public static double kI = 0;
     public static double kD = 0;
+    public static double kCos = 0.025;
+    public static int dumpCloseTime = 300;
+    public static int dumpOpenTime = 1000;
 
     PIDCoefficients coeffs = new PIDCoefficients(kP, kI, kD);
 
@@ -87,6 +98,7 @@ public class Arm extends SubsystemBase {
         currentState = State.OFF;
 
         currentProfile = null;
+
     }
 
     public void setPower(double power) {
@@ -103,41 +115,72 @@ public class Arm extends SubsystemBase {
     }
 
     public void setState(State s) {
-        controller.setTargetPosition(s.position);
+        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(getDegree(), 0, 0), new MotionState(s.angle, 0, 0), s.v, s.a);
         currentState = s;
+        t.reset();
     }
 
+    public void setAngle(double a) {
+        controller.setTargetPosition(a);
+        currentState = State.TOP;
+    }
+
+    public void top() {
+        setState(State.TOP);
+        ref.intake.setState(Intake.State.ARM_UP);
+        ref.scheduleTask(() -> {
+            ref.intake.setState(Intake.State.OFF);
+        }, 300);
+        ref.scheduleTask(() -> {
+            ref.secondArm.outtake();
+        }, dumpOpenTime);
+    }
+
+    public void middle() {
+        setState(State.MIDDLE);
+        ref.intake.setState(Intake.State.ARM_UP);
+        ref.scheduleTask(() -> {
+            ref.intake.setState(Intake.State.OFF);
+        }, 300);
+
+        ref.scheduleTask(() -> {
+            ref.secondArm.outtake();
+        }, dumpOpenTime);
+    }
+
+    public void bottom() {
+        setState(State.BOTTOM);
+        ref.intake.setState(Intake.State.ARM_UP);
+        ref.scheduleTask(() -> {
+            ref.intake.setState(Intake.State.OFF);
+        }, 300);
+        ref.scheduleTask(() -> {
+            ref.secondArm.outtake();
+        }, dumpOpenTime);
+    }
+
+
     public void closeArm() {
-        ref.dumpy.intake();
+        ref.secondArm.intake();
+        ref.intake.setState(Intake.State.ARM_DOWN);
         ref.scheduleTask(() -> {
             setState(State.INTAKE);
-        }, 250);
+            ref.scheduleTask(() -> {
+                ref.intake.setState(Intake.State.OFF);
+            }, 1300);
+        }, dumpCloseTime);
     }
 
     public void openArm() {
-        ref.dumpy.close();
-        ref.scheduleTask(() -> {
-            setState(State.UP);
-        }, 150);
+        top();
     }
 
     public void dump() {
-        ref.dumpy.outtake();
-        ref.scheduleTask(this::closeArm, 1000);
+        ref.secondArm.dump();
+//        ref.scheduleTask(this::closeArm, 1000);
     }
 
-    public void powerDump() {
-        ref.dumpy.powerOuttake();
-        ref.scheduleTask(this::closeArm, 1000);
-    }
-
-    public void testProfile() {
-        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0), new MotionState(410, 0,0), 10, 10);
-        t.reset();
-        setState(State.PROFILE);
-    }
-
-    public void run() {
+    public void update() {
         switch (currentState) {
             case OFF: {
                 setPower(0);
@@ -149,15 +192,15 @@ public class Arm extends SubsystemBase {
                 controller.setTargetPosition(state.getX());
                 controller.setTargetVelocity(state.getV());
                 controller.setTargetAcceleration(state.getA());
-                double power = controller.update(getAverage());
+//                double power = controller.update(getDegree()) + (kCos * Math.cos(Math.toRadians(getDegree())));
+                double power = controller.update(getDegree());
                 setPower(power);
                 break;
             }
             case UP: {
-                double power = controller.update(getAverage());
+                double power = controller.update(getDegree()) + (kCos * Math.cos(Math.toRadians(getDegree())));
                 setPower(power);
 
-                ref.drive.slow();
                 if (hasReached()) {
                     ref.dumpy.open();
                     setState(level);
@@ -174,22 +217,31 @@ public class Arm extends SubsystemBase {
             case TOP:
             case MIDDLE:
             case BOTTOM: {
-                ref.drive.slow();
             }
             default: {
-                double power = controller.update(getAverage());
+//                double power = controller.update(getDegree()) + (kCos * Math.cos(Math.toRadians(getDegree())));
+//                setPower(power);
+                MotionState state = currentProfile.get(t.milliseconds());
+                controller.setTargetPosition(state.getX());
+                controller.setTargetVelocity(state.getV());
+                controller.setTargetAcceleration(state.getA());
+//                double power = controller.update(getDegree()) + (kCos * Math.cos(Math.toRadians(getDegree())));
+                double power = controller.update(getDegree());
                 setPower(power);
+
             }
         }
     }
 
     public boolean hasReached() {
-        double error = currentState.position - getAverage();
+        double error = currentState.angle - getDegree();
         return Math.abs(error) < delta;
     }
 
-    public double getAverage() {
-        double encoder = top.getCurrentPosition() + bottom.getCurrentPosition();
-        return encoder / 2;
+    public double getDegree() {
+        double encoder = top.getCurrentPosition();
+        double angle = (encoder / TICKS_PER_REV) * 360;
+
+        return angle + ZERO_ANGLE;
     }
 }

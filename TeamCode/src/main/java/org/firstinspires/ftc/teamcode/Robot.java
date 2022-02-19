@@ -1,41 +1,45 @@
 package org.firstinspires.ftc.teamcode;
 
+import static java.lang.Math.toRadians;
+
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
 import org.firstinspires.ftc.teamcode.subsystems.Arm;
-import org.firstinspires.ftc.teamcode.subsystems.Arm2;
+import org.firstinspires.ftc.teamcode.subsystems.ArmDumpy;
 import org.firstinspires.ftc.teamcode.subsystems.DistanceSensor;
-import org.firstinspires.ftc.teamcode.subsystems.Drive;
 import org.firstinspires.ftc.teamcode.subsystems.Dumpy;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.SecondArm;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+import org.firstinspires.ftc.teamcode.util.PoseStorage;
 import org.firstinspires.ftc.teamcode.vision.Webcam;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Robot {
-    public Drive drive;
     public Arm arm;
-    public Arm2 arm2;
+    public SecondArm secondArm;
+    public ArmDumpy armDumpy;
     public Intake intake;
     public Dumpy dumpy;
     public DistanceSensor sensor;
-//    public Webcam webcam;
+    public SampleMecanumDriveCancelable drive;
+    public Webcam webcam;
     Telemetry telemetry;
 
     ExecutorService executor = Executors.newFixedThreadPool(10);
 
     public enum State {
-        INTAKE,
-        GRAB,
-        DRIVE,
-        SCORE,
-        AUTO;
+        DRIVER_CONTROL,
+        AUTO_CONTROL;
     }
 
     private State currentState;
@@ -45,17 +49,21 @@ public class Robot {
     }
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry) {
-        drive = new Drive(hardwareMap);
         arm = new Arm(hardwareMap, this);
-        arm2 = new Arm2(hardwareMap, this);
         intake = new Intake(hardwareMap, this);
         sensor = new DistanceSensor(hardwareMap);
-//        webcam = new Webcam(hardwareMap);
+        webcam = new Webcam(hardwareMap);
         dumpy = new Dumpy(hardwareMap, this);
+        secondArm = new SecondArm(hardwareMap, this);
+        armDumpy = new ArmDumpy(hardwareMap, this);
+
+        drive = new SampleMecanumDriveCancelable(hardwareMap);
+        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.setPoseEstimate(PoseStorage.currentPose);
 
         this.telemetry = telemetry;
 
-        currentState = State.DRIVE;
+        currentState = State.DRIVER_CONTROL;
     }
 
     public void shutdown() {
@@ -73,21 +81,20 @@ public class Robot {
         });
     }
 
-//    public void stream() {
-//        webcam.start();
-//    }
+    public void stream() {
+        webcam.start();
+    }
 
     public void log() {
         if (telemetry != null) {
+            telemetry.addData("distance", sensor.getDistance());
+            telemetry.addData("Arm Position", arm.getDegree());
 
-            telemetry.addData("leftamp", intake.intakeLeft.getCurrent(CurrentUnit.MILLIAMPS));
-            telemetry.addData("rightamp", intake.intakeRight.getCurrent(CurrentUnit.MILLIAMPS));
-
-            telemetry.addData("leftv", intake.intakeLeft.getVelocity());
-            telemetry.addData("rightv", intake.intakeRight.getVelocity());
-
-            telemetry.addData("distance",sensor.getDistance());
-
+            Pose2d poseEstimate = PoseStorage.currentPose;
+            telemetry.addData("State", currentState);
+            telemetry.addData("x", poseEstimate.getX());
+            telemetry.addData("y", poseEstimate.getY());
+            telemetry.addData("heading", poseEstimate.getHeading());
             telemetry.update();
         }
     }
@@ -113,12 +120,6 @@ public class Robot {
             arm.closeArm();
         }
 
-        if (driverOp.left_trigger > 0.5) {
-            drive.slow();
-        } else {
-            drive.normal();
-        }
-
         if (driverOp.a) {
             dumpy.intake();
             intake.setState(Intake.State.OUTTAKE);
@@ -127,7 +128,7 @@ public class Robot {
 
         if (toolOp.x) {
             intake.setState(Intake.State.INTAKE);
-            dumpy.setState(Dumpy.State.INTAKE);
+            dumpy.setState(Dumpy.State.OPEN);
         }
 
         if (toolOp.b) {
@@ -151,46 +152,175 @@ public class Robot {
             arm.dump();
         }
 
+        if (driverOp.dpad_down) {
+            toIntake();
+        }
 
+        if (driverOp.dpad_up) {
+            toHub();
+        }
 
-        drive.drive(driverOp);
-        arm.run();
-        intake.run();
-        dumpy.run();
+        if (driverOp.dpad_left) {
+            toHubLeft();
+        }
+
+        if (driverOp.dpad_right) {
+            toHubRight();
+        }
+
+        drive(driverOp);
+    }
+
+    public void update(Gamepad driverOp, Gamepad toolOp) {
+        switch (currentState) {
+            case DRIVER_CONTROL: {
+                teleOp(driverOp, toolOp);
+                break;
+            }
+            case AUTO_CONTROL: {
+                if (driverOp.b) {
+                    drive.breakFollowing();
+                    currentState = State.DRIVER_CONTROL;
+                    break;
+                }
+
+                if (!drive.isBusy()) {
+                    currentState = State.DRIVER_CONTROL;
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        PoseStorage.currentPose = drive.getPoseEstimate();
+
+        drive.update();
+        arm.update();
+        secondArm.update();
+        armDumpy.update();
+        dumpy.update();
+        intake.update();
 
         log();
     }
 
+    public void updateAuto() {
+        PoseStorage.currentPose = drive.getPoseEstimate();
+        drive.update();
+        arm.update();
+        secondArm.update();
+        armDumpy.update();
+        dumpy.update();
+        intake.update();
+
+        log();
+    }
+
+    public void drive(Gamepad g) {
+        drive.setWeightedDrivePower(
+                new Pose2d(
+                        -g.left_stick_y,
+                        -g.left_stick_x,
+                        -g.right_stick_x
+                )
+        );
+    }
+
+    public void toIntake() {
+        Trajectory intake = drive.trajectoryBuilder(PoseStorage.currentPose)
+                .splineTo(new Vector2d(25, 64.65), toRadians(0))
+                .lineTo(new Vector2d(60, 64.75))
+                .build();
+
+        TrajectorySequence toIntake = drive.trajectorySequenceBuilder(PoseStorage.currentPose)
+                .addTemporalMarker(() -> {
+                    System.out.println("arm down");
+                })
+                .setReversed(true)
+                .addTrajectory(intake)
+                .build();
+
+        currentState = State.AUTO_CONTROL;
+        drive.followTrajectorySequenceAsync(toIntake);
+    }
+
+    public void toHub() {
+        Trajectory hub = drive.trajectoryBuilder(PoseStorage.currentPose)
+                .lineToSplineHeading(new Pose2d(40, 64.75, toRadians(0)))
+                .lineTo(new Vector2d(30, 64.75))
+                .splineTo(new Vector2d(-13, 40), toRadians(270))
+                .build();
+
+        TrajectorySequence toHub = drive.trajectorySequenceBuilder(PoseStorage.currentPose)
+                .addTrajectory(hub)
+                .build();
+
+        currentState = State.AUTO_CONTROL;
+        drive.followTrajectorySequenceAsync(toHub);
+    }
+
+    public void toHubRight() {
+        Trajectory hubRight = drive.trajectoryBuilder(PoseStorage.currentPose)
+                .lineToSplineHeading(new Pose2d(40, 64.75, toRadians(0)))
+                .lineTo(new Vector2d(20, 64.75))
+                .splineTo(new Vector2d(8, 42.8), toRadians(270))
+                .lineToSplineHeading(new Pose2d(8, 22.8, toRadians(0)))
+                .build();
+
+        TrajectorySequence toHub = drive.trajectorySequenceBuilder(PoseStorage.currentPose)
+                .addTrajectory(hubRight)
+                .build();
+
+        currentState = State.AUTO_CONTROL;
+        drive.followTrajectorySequenceAsync(toHub);
+    }
+
+    public void toHubLeft() {
+        Trajectory hubLeft = drive.trajectoryBuilder(PoseStorage.currentPose)
+                .lineToSplineHeading(new Pose2d(40, 64.75, toRadians(0)))
+                .lineTo(new Vector2d(20, 64.75))
+                .splineTo(new Vector2d(-31.5, 42.8), toRadians(270))
+                .lineToSplineHeading(new Pose2d(-31.5, 22.8, toRadians(180)))
+                .build();
+
+        TrajectorySequence toHub = drive.trajectorySequenceBuilder(PoseStorage.currentPose)
+                .addTrajectory(hubLeft)
+                .build();
+
+        currentState = State.AUTO_CONTROL;
+        drive.followTrajectorySequenceAsync(toHub);
+    }
+
+
     public void intake() {
         intake.setState(Intake.State.INTAKE);
-        dumpy.setState(Dumpy.State.INTAKE);
+        dumpy.setState(Dumpy.State.OPEN);
+    }
+
+    public void stopIntake() {
+        dumpy.close();
+        scheduleTask(() -> {
+            intake.setState(Intake.State.OUTTAKE);
+            scheduleTask(() -> {
+                intake.setState(Intake.State.OFF);
+            }, 300);
+
+        }, 100);
     }
 
     public void fix() {
         intake.setState(Intake.State.FIX);
-        dumpy.setState(Dumpy.State.INTAKE);
-        scheduleTask(() -> {intake.setState(Intake.State.INTAKE);}, 200);
+        dumpy.setState(Dumpy.State.OPEN);
+        scheduleTask(() -> {
+            intake.setState(Intake.State.INTAKE);
+        }, 200);
     }
+
     public void autoIntake() {
         intake.setState(Intake.State.WAIT_FOR_ARM);
-        dumpy.setState(Dumpy.State.INTAKE);
-    }
-
-    public void autoRun() {
-        arm2.run();
-        intake.run();
-        dumpy.run();
-    }
-
-    public void setState(State s) {
-        currentState = s;
-        switch (currentState) {
-            case INTAKE: {
-                arm.setState(Arm.State.INTAKE);
-                intake.setState(Intake.State.INTAKE);
-                break;
-            }
-        }
+        dumpy.setState(Dumpy.State.OPEN);
     }
 
 }

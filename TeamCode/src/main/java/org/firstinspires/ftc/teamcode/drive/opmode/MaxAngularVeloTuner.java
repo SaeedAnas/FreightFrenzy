@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -22,7 +21,6 @@ import java.util.Objects;
  * Further fine tuning of MAX_ANG_VEL may be desired.
  */
 
-@Disabled
 @Config
 @Autonomous(group = "drive")
 public class MaxAngularVeloTuner extends LinearOpMode {
@@ -56,7 +54,8 @@ public class MaxAngularVeloTuner extends LinearOpMode {
         while (!isStopRequested() && timer.seconds() < RUNTIME) {
             drive.updatePoseEstimate();
 
-            Pose2d poseVelo = Objects.requireNonNull(drive.getPoseVelocity(), "poseVelocity() must not be null. Ensure that the getWheelVelocities() method has been overridden in your localizer.");
+            Pose2d poseVelo = Objects.requireNonNull(drive.getPoseVelocity(), "poseVelocity() must not be null. Ensure that the getWheelVelocities() method has been " +
+                    "overridden in your localizer.");
 
             maxAngVelocity = Math.max(poseVelo.getHeading(), maxAngVelocity);
         }

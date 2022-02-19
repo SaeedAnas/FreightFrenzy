@@ -1,53 +1,38 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Robot;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 @Config
 public class Dumpy {
-    public Servo top;
-    public Servo bottom;
+    public Servo wall;
 
     public static long delay = 250;
 
     private Robot ref;
 
-//    public static double topOpen = 0.5;
-    public static double topOpen = 0.1
-        ;
-//    public static double topClosed = 0.65;
-    public static double topClosed = 0.26;
-//    public static double topCloser = 0.69;
-    public static double topCloser = 0.26;
-    //    public static double topPush = 0.75;
-    public static double topPush = 0.38;
-//    public static double topPower = 0.9;
-    public static double topPower = 0.38;
+    // 0.5 up
+    // 0 down
 
-    public static double bottomClosed = 0.3;
-    public static double bottomOpen = 0.15;
+    // 0.37 max open
+    // 0.25 open
+
+    // 0.075 max closed
+
+    public static double open = 0.25;
+    public static double closed = 0.075;
 
     public enum State {
-        INTAKE(topOpen, bottomClosed),
-        CLOSED(topClosed,bottomClosed),
-        OPEN(topCloser, bottomClosed),
-        WAIT(0,0),
-        POWER(topPower, bottomOpen),
-        OUTTAKE(topPush,bottomOpen);
+        OPEN(open),
+        CLOSED(closed);
 
-        public double topPos;
-        public double bottomPos;
+        public double servoPos;
 
-        State(double topPos, double bottomPos) {
-            this.topPos = topPos;
-            this.bottomPos = bottomPos;
+        State(double servoPos) {
+            this.servoPos = servoPos;
         }
 
     }
@@ -55,17 +40,15 @@ public class Dumpy {
     public State currentState;
 
     public Dumpy(HardwareMap hardwareMap, Robot robot) {
-        top = hardwareMap.get(Servo.class, "top");
-        bottom = hardwareMap.get(Servo.class, "bottom");
+        wall = hardwareMap.get(Servo.class, "wall");
 
         ref = robot;
 
-        currentState = State.INTAKE;
+        currentState = State.CLOSED;
     }
 
-    public void toPos(double topPos, double bottomPos) {
-        top.setPosition(topPos);
-        bottom.setPosition(bottomPos);
+    public void toPos(double pos) {
+        wall.setPosition(pos);
     }
 
     public void setState(State s) {
@@ -77,15 +60,11 @@ public class Dumpy {
     }
 
     public void intake() {
-        setState(State.INTAKE);
+        setState(State.OPEN);
     }
 
     public void outtake() {
-        setState(State.OUTTAKE);
-    }
-
-    public void powerOuttake() {
-        setState(State.POWER);
+        setState(State.OPEN);
     }
 
     public void open() {
@@ -93,27 +72,10 @@ public class Dumpy {
     }
 
 
-    public void run() {
+    public void update() {
         switch (currentState) {
-            case OUTTAKE: {
-                bottom.setPosition(currentState.bottomPos);
-                ref.scheduleTask(() -> top.setPosition(topPush), 150);
-                setState(State.WAIT);
-                break;
-            }
-            case POWER: {
-                bottom.setPosition(currentState.bottomPos);
-                ref.scheduleTask(() -> top.setPosition(topPower), 150);
-                setState(State.WAIT);
-                break;
-
-            }
-            case WAIT: {
-                break;
-            }
             default: {
-                toPos(currentState.topPos, currentState.bottomPos);
-                setState(State.WAIT);
+                toPos(currentState.servoPos);
             }
         }
     }

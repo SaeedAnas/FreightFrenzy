@@ -17,17 +17,20 @@ public class Intake extends SubsystemBase {
 
     private State currentState;
 
-    public static double p = 0.95;
+    public static double p = -0.5;
 
     public enum State {
         INTAKE(p),
         OUTTAKE(-p),
         FIX(p),
+        ARM_UP(-0.3),
+        ARM_DOWN(0.3),
         WAIT(0),
         WAIT_FOR_ARM(0),
         OFF(0);
 
         double power;
+
         State(double power) {
             this.power = power;
         }
@@ -56,17 +59,19 @@ public class Intake extends SubsystemBase {
         return intakeLeft.getVelocity();
     }
 
-    public void run() {
+    public void update() {
 
         switch (currentState) {
             case INTAKE: {
                 setPower(currentState.power);
                 if (intakeLeft.isOverCurrent()) {
                     setState(State.OUTTAKE);
-                    ref.scheduleTask(() -> {setState(State.OFF);}, 200);
+                    ref.scheduleTask(() -> {
+                        setState(State.OFF);
+                    }, 200);
                 }
                 if (ref.sensor.detectBlock()) {
-                    setState(State.WAIT);
+                    setState(State.OUTTAKE);
                     ref.scheduleTask(() -> setState(State.OFF), 200);
                     ref.dumpy.close();
                 }

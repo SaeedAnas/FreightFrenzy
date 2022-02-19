@@ -9,7 +9,6 @@ import com.acmerobotics.roadrunner.profile.MotionProfile;
 import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -18,7 +17,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.util.ArrayList;
 
-@Disabled
 @Config
 @Autonomous(group = "drive")
 public class ArmTuner extends LinearOpMode {
@@ -80,7 +78,7 @@ public class ArmTuner extends LinearOpMode {
 
         waitForStart();
 
-        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0), new MotionState(pos, 0,0), velo, accel);
+        currentProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(pos, 0, 0), velo, accel);
         t.reset();
 
         while (opModeIsActive()) {

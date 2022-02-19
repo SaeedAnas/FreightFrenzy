@@ -2,15 +2,9 @@ package org.firstinspires.ftc.teamcode.auto;
 
 import static java.lang.Math.toRadians;
 
-import androidx.annotation.NonNull;
-
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -209,7 +203,7 @@ public class TrajectoryTest extends LinearOpMode {
             }
 
             drive.update();
-            robot.autoRun();
+            robot.updateAuto();
 
 
             PoseStorage.currentPose = drive.getPoseEstimate();
@@ -224,15 +218,15 @@ public class TrajectoryTest extends LinearOpMode {
         if (l == Level.TOP) {
             TrajectorySequence toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                     .addTemporalMarker(() -> {
-                        robot.arm2.top();
+                        robot.arm.top();
                     })
                     .lineToConstantHeading(new Vector2d(-13, level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .addTemporalMarker(() -> {
                         currentState = State.INTAKE;
@@ -250,15 +244,15 @@ public class TrajectoryTest extends LinearOpMode {
         } else if (l == Level.MIDDLE) {
             TrajectorySequence toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                     .addTemporalMarker(() -> {
-                        robot.arm2.middle();
+                        robot.arm.middle();
                     })
                     .lineToConstantHeading(new Vector2d(-13, level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .addTemporalMarker(() -> {
                         currentState = State.INTAKE;
@@ -272,18 +266,18 @@ public class TrajectoryTest extends LinearOpMode {
                     .resetVelConstraint()
                     .build();
             drive.followTrajectorySequenceAsync(toHubStart);
-        }  else {
+        } else {
             TrajectorySequence toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                     .addTemporalMarker(() -> {
-                        robot.arm2.bottom();
+                        robot.arm.bottom();
                     })
                     .lineToConstantHeading(new Vector2d(-13, level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .addTemporalMarker(() -> {
                         currentState = State.INTAKE;
@@ -335,17 +329,17 @@ public class TrajectoryTest extends LinearOpMode {
 //                .splineTo(new Vector2d(0, 38), toRadians(245))
                 .lineTo(new Vector2d(30, 66))
                 .addTemporalMarker(() -> {
-                    robot.arm2.top();
+                    robot.arm.top();
                 })
                 .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 40)
 //                .splineTo(new Vector2d(0, 38), toRadians(245))
                 .splineTo(new Vector2d(-8, 43), toRadians(253))
                 .addTemporalMarker(() -> {
-                    robot.arm2.dump();
+                    robot.arm.dump();
                 })
                 .waitSeconds(0.5)
                 .addTemporalMarker(() -> {
-                    robot.arm2.closeArm();
+                    robot.arm.closeArm();
                 })
 //                .splineTo(new Vector2d(44, 63.75), toRadians(0))
                 .addTemporalMarker(() -> {

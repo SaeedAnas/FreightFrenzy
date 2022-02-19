@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -15,7 +14,6 @@ public class DumpyTuner extends LinearOpMode {
     Dumpy dumpy;
 
     public static double topPos = 0;
-    public static double bottomPos = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -24,10 +22,10 @@ public class DumpyTuner extends LinearOpMode {
 
         waitForStart();
 
-        while(opModeIsActive()) {
+        while (opModeIsActive()) {
             if (isStopRequested()) return;
 
-            dumpy.toPos(topPos, bottomPos);
+            dumpy.toPos(topPos);
         }
     }
 }

@@ -173,7 +173,7 @@ public class RedSimpleAuto extends LinearOpMode {
 
         while (drive.isBusy() && opModeIsActive() && !isStopRequested()) {
             drive.update();
-            robot.autoRun();
+            robot.updateAuto();
 
 
             PoseStorage.currentPose = drive.getPoseEstimate();
@@ -188,15 +188,15 @@ public class RedSimpleAuto extends LinearOpMode {
         TrajectorySequence toHubStart = drive.trajectorySequenceBuilder(redStartingPosition)
                 .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 35)
                 .addTemporalMarker(() -> {
-                    robot.arm2.top();
+                    robot.arm.top();
                 })
                 .lineToConstantHeading(new Vector2d(-13, -level.y))
                 .addTemporalMarker(() -> {
-                    robot.arm2.dump();
+                    robot.arm.dump();
                 })
                 .waitSeconds(0.5)
                 .addTemporalMarker(() -> {
-                    robot.arm2.closeArm();
+                    robot.arm.closeArm();
                 })
                 .splineTo(new Vector2d(40, -65.75), toRadians(0))
                 .build();
@@ -205,15 +205,15 @@ public class RedSimpleAuto extends LinearOpMode {
             toHubStart = drive.trajectorySequenceBuilder(redStartingPosition)
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 35)
                     .addTemporalMarker(() -> {
-                        robot.arm2.top();
+                        robot.arm.top();
                     })
                     .lineToConstantHeading(new Vector2d(-13, -level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .splineTo(new Vector2d(40, -65.75), toRadians(0))
                     .build();
@@ -222,31 +222,31 @@ public class RedSimpleAuto extends LinearOpMode {
             toHubStart = drive.trajectorySequenceBuilder(redStartingPosition)
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 35)
                     .addTemporalMarker(() -> {
-                        robot.arm2.middle();
+                        robot.arm.middle();
                     })
                     .lineToConstantHeading(new Vector2d(-13, -level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .splineTo(new Vector2d(40, -65.75), toRadians(0))
                     .build();
-        }  else if (l == Level.BOTTOM) {
+        } else if (l == Level.BOTTOM) {
             toHubStart = drive.trajectorySequenceBuilder(redStartingPosition)
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 35)
                     .addTemporalMarker(() -> {
-                        robot.arm2.bottom();
+                        robot.arm.bottom();
                     })
                     .lineToConstantHeading(new Vector2d(-13, -level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .splineTo(new Vector2d(40, -65.75), toRadians(0))
                     .build();

@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.teamcode.util.PoseStorage;
 import org.firstinspires.ftc.teamcode.vision.TestPipeline;
@@ -174,7 +173,7 @@ public class BlueSimpleAuto extends LinearOpMode {
 
         while (drive.isBusy() && opModeIsActive() && !isStopRequested()) {
             drive.update();
-            robot.autoRun();
+            robot.updateAuto();
 
 
             PoseStorage.currentPose = drive.getPoseEstimate();
@@ -188,15 +187,15 @@ public class BlueSimpleAuto extends LinearOpMode {
     public void toStart(Level l) {
         TrajectorySequence toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                 .addTemporalMarker(() -> {
-                    robot.arm2.top();
+                    robot.arm.top();
                 })
                 .lineToConstantHeading(new Vector2d(-13, level.y))
                 .addTemporalMarker(() -> {
-                    robot.arm2.dump();
+                    robot.arm.dump();
                 })
                 .waitSeconds(0.5)
                 .addTemporalMarker(() -> {
-                    robot.arm2.closeArm();
+                    robot.arm.closeArm();
                 })
                 .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 45)
                 .splineTo(new Vector2d(40, 65.75), toRadians(0))
@@ -205,15 +204,15 @@ public class BlueSimpleAuto extends LinearOpMode {
         if (l == Level.TOP) {
             toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                     .addTemporalMarker(() -> {
-                        robot.arm2.top();
+                        robot.arm.top();
                     })
                     .lineToConstantHeading(new Vector2d(-13, level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 45)
                     .splineTo(new Vector2d(40, 65.75), toRadians(0))
@@ -222,31 +221,31 @@ public class BlueSimpleAuto extends LinearOpMode {
         } else if (l == Level.MIDDLE) {
             toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                     .addTemporalMarker(() -> {
-                        robot.arm2.middle();
+                        robot.arm.middle();
                     })
                     .lineToConstantHeading(new Vector2d(-13, level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 45)
                     .splineTo(new Vector2d(40, 65.75), toRadians(0))
                     .build();
-        }  else if (l == Level.BOTTOM) {
+        } else if (l == Level.BOTTOM) {
             toHubStart = drive.trajectorySequenceBuilder(blueStartingPosition)
                     .addTemporalMarker(() -> {
-                        robot.arm2.bottom();
+                        robot.arm.bottom();
                     })
                     .lineToConstantHeading(new Vector2d(-13, level.y))
                     .addTemporalMarker(() -> {
-                        robot.arm2.dump();
+                        robot.arm.dump();
                     })
                     .waitSeconds(0.5)
                     .addTemporalMarker(() -> {
-                        robot.arm2.closeArm();
+                        robot.arm.closeArm();
                     })
                     .setVelConstraint((v, pose2d, pose2d1, pose2d2) -> 45)
                     .splineTo(new Vector2d(40, 65.75), toRadians(0))
