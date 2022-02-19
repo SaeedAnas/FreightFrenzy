@@ -65,7 +65,7 @@ public class ColorFilterPipeline extends OpenCvPipeline {
         telemetry.addData("[Upper Scalar]", upper);
         telemetry.update();
 
-        Collections.sort(contours, (c1, c2) -> boundingRect(c2).width - boundingRect(c1).width);
+        Collections.sort(contours, (c1, c2) -> boundingRect(c2).width * boundingRect(c2).height - boundingRect(c1).width) * boundingRect(c1).height;
 
         if (contours.size() > 0) {
             // for (int i = 0; i < contours.size(); i ++) {
