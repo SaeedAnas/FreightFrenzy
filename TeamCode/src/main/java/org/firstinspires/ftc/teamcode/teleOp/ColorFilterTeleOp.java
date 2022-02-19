@@ -17,8 +17,9 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 public class ColorFilterTeleOp extends LinearOpMode {
     OpenCvCamera camera;
 
-    int left_x_val = 10; //NEEDS TUNING!
-    int right_x_val = 40; //NEEDS TUNING!
+    int left_x_val = 100; //NEEDS TUNING!
+    int right_x_val = 200; //NEEDS TUNING!
+
 
     @Override
     public void runOpMode() {

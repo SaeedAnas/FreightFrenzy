@@ -1,211 +1,97 @@
 package org.firstinspires.ftc.teamcode.vision;
 
-import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import static org.opencv.core.Core.inRange;
+import static org.opencv.imgproc.Imgproc.boundingRect;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import static org.opencv.imgproc.Imgproc.drawContours;
+import static org.opencv.imgproc.Imgproc.findContours;
+import static org.opencv.imgproc.Imgproc.rectangle;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
+import org.opencv.core.Rect;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.opencv.core.Point;
+import java.util.Collections;
 
-@Config
 public class ColorFilterPipeline extends OpenCvPipeline {
 
-    private ElapsedTime runtime = new ElapsedTime();
-
-    //0 means skystone, 1 means yellow stone
-    //-1 for debug, but we can keep it like this because if it works, it should change to either 0 or 255
-    private static int valMid = -1;
-    private static int valLeft = -1;
-    private static int valRight = -1;
-
-    private static float rectHeight = .6f / 8f;
-    private static float rectWidth = 1.5f / 8f;
-
-    private static float offsetX = 0f / 8f;//changing this moves the three rects and the three circles left or right, range : (-2, 2) not inclusive
-    private static float offsetY = 0f / 8f;//changing this moves the three rects and circles up or down, range: (-4, 4) not inclusive
-
-    private static float[] midPos = {4f / 8f + offsetX, 4f / 8f + offsetY};//0 = col, 1 = row
-    private static float[] leftPos = {2f / 8f + offsetX, 4f / 8f + offsetY};
-    private static float[] rightPos = {6f / 8f + offsetX, 4f / 8f + offsetY};
-    //moves all rectangles right or left by amount. units are in ratio to monitor
-
-    private final int rows = 640;
-    private final int cols = 480;
+    private Telemetry telemetry = null;
 
     public static int xPos = 0;
+
+    public static int lowerh = 20;
+    public static int lowers = 36;
+    public static int lowerv = 150;
+
+    public static int upperh = 28;
+    public static int uppers = 153;
+    public static int upperv = 237;
+
+    public Scalar lower = new Scalar(lowerh, lowers, lowerv);
+    public Scalar upper = new Scalar(upperh, uppers, upperv);
 
     public int getPos() {
         return xPos;
     }
 
-    public static double lowerh = 0;
-    public static double lowers = 55;
-    public static double lowerv = 100;
-
-    public static double upperh = 37;
-    public static double uppers = 132;
-    public static double upperv = 135;
-
-    Mat yCbCrChan2Mat = new Mat();
-    Mat thresholdMat = new Mat();
-    Mat all = new Mat();
-    List<MatOfPoint> contoursList = new ArrayList<>();
-
-    enum Stage {//color difference. greyscale
-        detection,//includes outlines
-        THRESHOLD,//b&w
-        RAW_IMAGE,//displays raw view
+    public ColorFilterPipeline(Telemetry telemetry) {
+        this.telemetry = telemetry;
     }
-
-    private Stage stageToRenderToViewport = Stage.detection;
-    private Stage[] stages = Stage.values();
-
-    @Override
-    public void onViewportTapped() {
-        /*
-         * Note that this method is invoked from the UI thread
-         * so whatever we do here, we must do quickly.
-         */
-
-        int currentStageNum = stageToRenderToViewport.ordinal();
-
-        int nextStageNum = currentStageNum + 1;
-
-        if (nextStageNum >= stages.length) {
-            nextStageNum = 0;
-        }
-
-        stageToRenderToViewport = stages[nextStageNum];
-    }
-
-
-//    @Override
-//    public Mat processFrame(Mat input) {
-//        Mat mat = new Mat();
-//        Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
-//
-//        Mat masked = new Mat();
-//        Scalar lower = new Scalar(lowerh, lowers, lowerv);
-//        Scalar upper = new Scalar(upperh, uppers, upperv);
-//
-//        Mat thresh = new Mat();
-//        inRange(mat, lower, upper, masked);
-//
-//        Mat edges = new Mat();
-//        Imgproc.Canny(thresh, edges, 100, 300);
-//
-//        List<MatOfPoint> contours = new ArrayList<>();
-//        Mat hierarchy = new Mat();
-//        findContours(edges, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-//
-//        drawContours(input, contours, -1, new Scalar(0, 255, 0), 1);
-//
-//        try {
-//            xPos = boundingRect(contours.get(0)).x;
-//        } catch (Exception e) {
-//            xPos = 0;
-//        }
-//        return input;
-//
-//    }
 
     @Override
     public Mat processFrame(Mat input) {
-        contoursList.clear();
-        /*
-         * This pipeline finds the contours of yellow blobs such as the Gold Mineral
-         * from the Rover Ruckus game.
-         */
+        Mat mat = new Mat();
+        Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
 
-        //color diff cb.
-        //lower cb = more blue = skystone = white
-        //higher cb = less blue = yellow stone = grey
-        Imgproc.cvtColor(input, yCbCrChan2Mat, Imgproc.COLOR_RGB2YCrCb);//converts rgb to ycrcb
-        Core.extractChannel(yCbCrChan2Mat, yCbCrChan2Mat, 2);//takes cb difference and stores
+        Mat masked = new Mat();
 
-        //b&w
-        Imgproc.threshold(yCbCrChan2Mat, thresholdMat, 102, 255, Imgproc.THRESH_BINARY_INV);
+        inRange(mat, lower, upper, masked);
 
-        //outline/contour
-        Imgproc.findContours(thresholdMat, contoursList, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-        yCbCrChan2Mat.copyTo(all);//copies mat object
-        //Imgproc.drawContours(all, contoursList, -1, new Scalar(255, 0, 0), 3, 8);//draws blue contours
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        findContours(masked, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
 
+        drawContours(input, contours, -1, new Scalar(0, 255, 0), 1);
 
-        //get values from frame
-        double[] pixMid = thresholdMat.get((int) (input.rows() * midPos[1]), (int) (input.cols() * midPos[0]));//gets value at circle
-        valMid = (int) pixMid[0];
+        telemetry.addData("[>]", "Change these values in tuner menu");
+        telemetry.addData("x val", xPos);
+        telemetry.addData("[Lower Scalar]", lower);
+        telemetry.addData("[Upper Scalar]", upper);
+        telemetry.update();
 
-        double[] pixLeft = thresholdMat.get((int) (input.rows() * leftPos[1]), (int) (input.cols() * leftPos[0]));//gets value at circle
-        valLeft = (int) pixLeft[0];
+        Collections.sort(contours, (c1, c2) -> boundingRect(c2).width - boundingRect(c1).width);
 
-        double[] pixRight = thresholdMat.get((int) (input.rows() * rightPos[1]), (int) (input.cols() * rightPos[0]));//gets value at circle
-        valRight = (int) pixRight[0];
+        if (contours.size() > 0) {
+            // for (int i = 0; i < contours.size(); i ++) {
+            //     int x = boundingRect(contours.get(i)).x;
+            //     int y = boundingRect(contours.get(i)).y;
+            //     int width = boundingRect(contours.get(i)).width;
+            //     int height = boundingRect(contours.get(i)).height;
+            //     rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
 
-        //create three points
-        Point pointMid = new Point((int) (input.cols() * midPos[0]), (int) (input.rows() * midPos[1]));
-        Point pointLeft = new Point((int) (input.cols() * leftPos[0]), (int) (input.rows() * leftPos[1]));
-        Point pointRight = new Point((int) (input.cols() * rightPos[0]), (int) (input.rows() * rightPos[1]));
+            //     xPos = (int) (x + width/2);
+            // }
 
-        //draw circles on those points
-        Imgproc.circle(all, pointMid, 5, new Scalar(255, 0, 0), 1);//draws circle
-        Imgproc.circle(all, pointLeft, 5, new Scalar(255, 0, 0), 1);//draws circle
-        Imgproc.circle(all, pointRight, 5, new Scalar(255, 0, 0), 1);//draws circle
+            int x = boundingRect(contours.get(0)).x;
+            int y = boundingRect(contours.get(0)).y;
+            int width = boundingRect(contours.get(0)).width;
+            int height = boundingRect(contours.get(0)).height;
+            rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
 
-        //draw 3 rectangles
-        Imgproc.rectangle(//1-3
-                all,
-                new Point(
-                        input.cols() * (leftPos[0] - rectWidth / 2),
-                        input.rows() * (leftPos[1] - rectHeight / 2)),
-                new Point(
-                        input.cols() * (leftPos[0] + rectWidth / 2),
-                        input.rows() * (leftPos[1] + rectHeight / 2)),
-                new Scalar(0, 255, 0), 3);
-        Imgproc.rectangle(//3-5
-                all,
-                new Point(
-                        input.cols() * (midPos[0] - rectWidth / 2),
-                        input.rows() * (midPos[1] - rectHeight / 2)),
-                new Point(
-                        input.cols() * (midPos[0] + rectWidth / 2),
-                        input.rows() * (midPos[1] + rectHeight / 2)),
-                new Scalar(0, 255, 0), 3);
-        Imgproc.rectangle(//5-7
-                all,
-                new Point(
-                        input.cols() * (rightPos[0] - rectWidth / 2),
-                        input.rows() * (rightPos[1] - rectHeight / 2)),
-                new Point(
-                        input.cols() * (rightPos[0] + rectWidth / 2),
-                        input.rows() * (rightPos[1] + rectHeight / 2)),
-                new Scalar(0, 255, 0), 3);
+            xPos = (int) (x + width/2);
 
-        switch (stageToRenderToViewport) {
-            case THRESHOLD: {
-                return thresholdMat;
-            }
-
-            case detection: {
-                return all;
-            }
-
-            case RAW_IMAGE: {
-                return input;
-            }
-
-            default: {
-                return input;
-            }
+        } else {
+            telemetry.addData("nothing found :(", 0);
+            telemetry.update();
         }
+
+        return input;
+
     }
-
-
 }
