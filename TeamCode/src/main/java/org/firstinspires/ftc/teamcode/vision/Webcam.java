@@ -65,4 +65,8 @@ public class Webcam {
         });
     }
 
+    public void close() {
+        camera.closeCameraDevice();
+    }
+
 }

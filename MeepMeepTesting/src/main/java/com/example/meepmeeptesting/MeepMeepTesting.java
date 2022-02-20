@@ -22,9 +22,9 @@ import java.util.Arrays;
 public class MeepMeepTesting {
 
 
-    public static double MAX_VEL = 72;
+    public static double MAX_VEL = 35;
     public static double MAX_ACCEL = 30;
-    public static double MAX_ANG_VEL = toRadians(200);
+    public static double MAX_ANG_VEL = toRadians(150);
     public static double MAX_ANG_ACCEL = toRadians(40);
     public static double TRACK_WIDTH = 12.1;
 
@@ -99,19 +99,22 @@ public class MeepMeepTesting {
                                 .build()
                 );
 
-        Pose2d intakePos = new Pose2d(40, 38, toRadians(30));
+        Pose2d intakePos = new Pose2d(44, 62, toRadians(0));
         RoadRunnerBotEntity hubRoute = new DefaultBotBuilder(mm)
                 .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
                 .setDimensions(width, height)
                 .setColorScheme(new ColorSchemeBlueDark())
                 .followTrajectorySequence(drive ->
-                        drive.trajectorySequenceBuilder(intakePos)
-                                .lineToSplineHeading(new Pose2d(40, 64.45, toRadians(0)))
-                                .lineTo(new Vector2d(10, 64.45))
-                                .lineTo(new Vector2d(6, 60))
-                                .setReversed(true)
-                                .splineToSplineHeading(new Pose2d(-13, 44, toRadians(90)), toRadians(270))
-                                .build()
+                                drive.trajectorySequenceBuilder(intakePos)
+                                        .lineTo(new Vector2d(10, 62))
+//                                        .splineTo(new Vector2d(-5, 55), toRadians(0))
+                                        .splineTo(new Vector2d(-11, 40), toRadians(270))
+//                                .lineToSplineHeading(new Pose2d(40, 64.45, toRadians(0)))
+//                                .lineTo(new Vector2d(10, 64.45))
+//                                .lineTo(new Vector2d(6, 60))
+//                                .setReversed(true)
+//                                .splineToSplineHeading(new Pose2d(-13, 44, toRadians(90)), toRadians(270))
+                                        .build()
                 );
         RoadRunnerBotEntity start = new DefaultBotBuilder(mm)
                 .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
@@ -172,24 +175,20 @@ public class MeepMeepTesting {
                                 .build()
                 );
 
-        Pose2d hubPos = new Pose2d(-11, 44, toRadians(90));
+        Pose2d hubPos = new Pose2d(-13, 44, toRadians(270));
         RoadRunnerBotEntity intakeRoute = new DefaultBotBuilder(mm)
                 .setConstraints(MAX_VEL, MAX_ACCEL, MAX_ANG_VEL, MAX_ANG_ACCEL, TRACK_WIDTH)
                 .setDimensions(width, height)
                 .setColorScheme(new ColorSchemeBlueDark())
                 .followTrajectorySequence(drive ->
                                 drive.trajectorySequenceBuilder(hubPos)
-//                                .setReversed(true)
+                                        .setReversed(true)
+                                        .splineTo(new Vector2d(20, 63.5), 0)
+
 //                                        .splineToSplineHeading(new Pose2d(-5, 50, toRadians(65)), toRadians(65))
 //                                        .splineToSplineHeading(new Pose2d(-11, 50, toRadians(75)), toRadians(85))
-                                        .splineToSplineHeading(new Pose2d(3, 61, toRadians(0)), toRadians(0))
 //                                        .splineToSplineHeading(new Pose2d(5, 64, toRadians(0)), toRadians(0))
-                                        .splineToConstantHeading(new Vector2d(13, 64), 0)
-                                        .splineToConstantHeading(new Vector2d(30, 64), 0)
 //                                        .splineTo(new Vector2d(25, 64.75), toRadians(0))
-                                        .addDisplacementMarker(() -> {
-
-                                        })
 //                                        .splineTo(new Vector2d(25, 64.75), toRadians(0))
 //                                        .addDisplacementMarker(() -> {
 //

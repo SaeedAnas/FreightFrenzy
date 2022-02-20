@@ -28,13 +28,16 @@ public class VisionOpMode extends LinearOpMode {
 
         while (opModeIsActive() && !isStopRequested()) {
             double pos = ColorFilterPipeline.xPos;
+            double width = ColorFilterPipeline.boxWidth;
+            telemetry.addData("xPos", pos);
+            telemetry.addData("width", width);
 
-            if (pos < 250) {
-                telemetry.addData("Level", "BOTTOM");
-            } else if (pos < 550) {
+            if (pos > 500) {
+                telemetry.addData("Level", "TOP");
+            } else if (pos < 500 && pos > 100) {
                 telemetry.addData("Level", "MIDDLE");
             } else {
-                telemetry.addData("Level", "TOP");
+                telemetry.addData("Level", "BOTTOM");
             }
 
 //            telemetry.addData("xPos", ColorFilterPipeline.xPos);

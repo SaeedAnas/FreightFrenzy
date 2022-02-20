@@ -88,6 +88,10 @@ public class Robot {
         webcam.colorfilter().start();
     }
 
+    public void stopStreaming() {
+        webcam.close();
+    }
+
     public void log() {
         if (telemetry != null) {
             telemetry.addData("distance", sensor.getDistance());
@@ -100,7 +104,7 @@ public class Robot {
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
             telemetry.addData("xPos", ColorFilterPipeline.xPos);
-//            telemetry.update();
+            telemetry.update();
         }
     }
 
@@ -220,7 +224,7 @@ public class Robot {
         dumpy.update();
         intake.update();
 
-        log();
+//        log();
     }
 
     public void drive(Gamepad g) {

@@ -27,6 +27,7 @@ public class ArmDumpy {
 
 
     public enum State {
+        AUTO_TOP(highPosL, highPosR),
         INTAKE(intakePosL, intakePosR),
         OUTTAKE(outtakePosL, outtakePosR),
         EXTEND(extendPosL, extendPosR),
@@ -78,6 +79,10 @@ public class ArmDumpy {
 
     public void bottom() {
         setState(State.BOTTOM);
+    }
+
+    public void autoTop() {
+        setState(State.AUTO_TOP);
     }
 
     public void toPos(double leftPos, double rightPos) {

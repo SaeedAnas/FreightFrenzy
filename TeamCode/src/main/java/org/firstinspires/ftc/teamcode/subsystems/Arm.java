@@ -167,12 +167,23 @@ public class Arm extends SubsystemBase {
             setState(State.INTAKE);
             ref.scheduleTask(() -> {
                 ref.intake.setState(Intake.State.OFF);
-            }, 1300);
+            }, 1500);
         }, dumpCloseTime);
     }
 
     public void openArm() {
         top();
+    }
+
+    public void topAuto() {
+        setState(State.TOP);
+        ref.intake.setState(Intake.State.ARM_UP);
+        ref.scheduleTask(() -> {
+            ref.intake.setState(Intake.State.OFF);
+        }, 300);
+        ref.scheduleTask(() -> {
+            ref.secondArm.autoTop();
+        }, dumpOpenTime);
     }
 
     public void dump() {

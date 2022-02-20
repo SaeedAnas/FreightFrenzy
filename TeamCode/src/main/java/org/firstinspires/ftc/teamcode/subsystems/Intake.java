@@ -22,6 +22,7 @@ public class Intake extends SubsystemBase {
     public enum State {
         INTAKE(p),
         OUTTAKE(-p),
+        CAROUSEL(0.4),
         FIX(p),
         ARM_UP(-0.3),
         ARM_DOWN(0.3),

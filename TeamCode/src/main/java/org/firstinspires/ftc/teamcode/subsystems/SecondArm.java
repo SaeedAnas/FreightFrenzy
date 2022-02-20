@@ -76,6 +76,12 @@ public class SecondArm {
         ref.dumpy.close();
     }
 
+    public void autoTop() {
+        setState(State.EXTEND);
+        ref.armDumpy.autoTop();
+        ref.dumpy.close();
+    }
+
 
     public void dump() {
         ref.dumpy.open();
