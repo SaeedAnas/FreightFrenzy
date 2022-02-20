@@ -76,20 +76,20 @@ public class ColorFilterPipeline extends OpenCvPipeline {
 //        telemetry.update();
 
         if (contours.size() > 0) {
-            // for (int i = 0; i < contours.size(); i ++) {
-            //     int x = boundingRect(contours.get(i)).x;
-            //     int y = boundingRect(contours.get(i)).y;
-            //     int width = boundingRect(contours.get(i)).width;
-            //     int height = boundingRect(contours.get(i)).height;
-            //     rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
-            //     xPos = (int) (x + width/2);
-            // }
+             for (int i = 0; i < contours.size(); i ++) {
+                 int x = boundingRect(contours.get(i)).x;
+                 int y = boundingRect(contours.get(i)).y;
+                 int width = boundingRect(contours.get(i)).width;
+                 int height = boundingRect(contours.get(i)).height;
+                 rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
+                 xPos = (int) (x + width/2);
+             }
 
             int x = boundingRect(contours.get(0)).x;
             int y = boundingRect(contours.get(0)).y;
             int width = boundingRect(contours.get(0)).width;
             int height = boundingRect(contours.get(0)).height;
-            rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
+//            rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
 
             xPos = (int) (x + width / 2);
             boxWidth = width;
