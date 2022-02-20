@@ -30,6 +30,8 @@ public class ArmDumpy {
         INTAKE(intakePosL, intakePosR),
         OUTTAKE(outtakePosL, outtakePosR),
         EXTEND(extendPosL, extendPosR),
+        MIDDLE(0.65, 0.65),
+        BOTTOM(0.5, 0.5),
         HIGH(highPosL, highPosR);
 
         public double leftPos;
@@ -68,6 +70,14 @@ public class ArmDumpy {
 
     public void high() {
         setState(State.HIGH);
+    }
+
+    public void middle() {
+        setState(State.MIDDLE);
+    }
+
+    public void bottom() {
+        setState(State.BOTTOM);
     }
 
     public void toPos(double leftPos, double rightPos) {

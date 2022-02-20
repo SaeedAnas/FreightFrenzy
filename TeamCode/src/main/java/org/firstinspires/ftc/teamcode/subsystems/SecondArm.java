@@ -18,7 +18,7 @@ public class SecondArm {
     public static double intakePosL = 0;
     public static double intakePosR = intakePosL + diff;
 
-    public static double extendPosL = 0.1;
+    public static double extendPosL = 0.18;
     public static double extendPosR = extendPosL + diff;
 
     public static double outtakePosL = 0.5;
@@ -63,6 +63,19 @@ public class SecondArm {
         ref.armDumpy.extend();
         ref.dumpy.close();
     }
+
+    public void middle() {
+        setState(State.EXTEND);
+        ref.armDumpy.middle();
+        ref.dumpy.close();
+    }
+
+    public void bottom() {
+        setState(State.EXTEND);
+        ref.armDumpy.bottom();
+        ref.dumpy.close();
+    }
+
 
     public void dump() {
         ref.dumpy.open();

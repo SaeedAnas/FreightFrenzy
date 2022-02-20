@@ -90,7 +90,13 @@ public class AllTuner extends LinearOpMode {
             if (gamepad1.dpad_up) {
                 robot.arm.openArm();
             }
+            if (gamepad1.right_bumper) {
+                robot.arm.openArm();
+            }
             if (gamepad1.dpad_down) {
+                robot.arm.closeArm();
+            }
+            if (gamepad1.left_bumper) {
                 robot.arm.closeArm();
             }
             if (gamepad1.dpad_left) {
@@ -116,7 +122,8 @@ public class AllTuner extends LinearOpMode {
                 robot.intake();
             }
 
-            robot.drive(gamepad1);
+            robot.driveFieldCentric(gamepad1);
+            robot.log();
 
             robot.updateAuto();
 

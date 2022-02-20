@@ -2,22 +2,21 @@ package org.firstinspires.ftc.teamcode.vision;
 
 import static org.opencv.core.Core.inRange;
 import static org.opencv.imgproc.Imgproc.boundingRect;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import static org.opencv.imgproc.Imgproc.drawContours;
 import static org.opencv.imgproc.Imgproc.findContours;
 import static org.opencv.imgproc.Imgproc.rectangle;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
-import org.opencv.core.Rect;
 
 import java.util.ArrayList;
-import java.util.List;
-import org.opencv.core.Point;
 import java.util.Collections;
+import java.util.List;
 
 public class ColorFilterPipeline extends OpenCvPipeline {
 
@@ -40,10 +39,6 @@ public class ColorFilterPipeline extends OpenCvPipeline {
         return xPos;
     }
 
-    public ColorFilterPipeline(Telemetry telemetry) {
-        this.telemetry = telemetry;
-    }
-
     @Override
     public Mat processFrame(Mat input) {
         Mat mat = new Mat();
@@ -59,11 +54,11 @@ public class ColorFilterPipeline extends OpenCvPipeline {
 
         drawContours(input, contours, -1, new Scalar(0, 255, 0), 1);
 
-        telemetry.addData("[>]", "Change these values in tuner menu");
-        telemetry.addData("x val", xPos);
-        telemetry.addData("[Lower Scalar]", lower);
-        telemetry.addData("[Upper Scalar]", upper);
-        telemetry.update();
+//        telemetry.addData("[>]", "Change these values in tuner menu");
+//        telemetry.addData("x val", xPos);
+//        telemetry.addData("[Lower Scalar]", lower);
+//        telemetry.addData("[Upper Scalar]", upper);
+//        telemetry.update();
 
         Collections.sort(contours, (c1, c2) -> boundingRect(c2).width * boundingRect(c2).height - boundingRect(c1).width * boundingRect(c1).height);
 
@@ -84,11 +79,11 @@ public class ColorFilterPipeline extends OpenCvPipeline {
             int height = boundingRect(contours.get(0)).height;
             rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
 
-            xPos = (int) (x + width/2);
+            xPos = (int) (x + width / 2);
 
         } else {
-            telemetry.addData("nothing found :(", 0);
-            telemetry.update();
+//            telemetry.addData("nothing found :(", 0);
+//            telemetry.update();
         }
 
         return input;

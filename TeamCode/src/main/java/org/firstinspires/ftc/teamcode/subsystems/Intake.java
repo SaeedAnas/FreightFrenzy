@@ -68,11 +68,11 @@ public class Intake extends SubsystemBase {
                     setState(State.OUTTAKE);
                     ref.scheduleTask(() -> {
                         setState(State.OFF);
-                    }, 200);
+                    }, 1000);
                 }
                 if (ref.sensor.detectBlock()) {
-                    setState(State.OUTTAKE);
-                    ref.scheduleTask(() -> setState(State.OFF), 200);
+                    ref.scheduleTask(() -> setState(State.OUTTAKE), 350);
+                    ref.scheduleTask(() -> setState(State.OFF), 1000);
                     ref.dumpy.close();
                 }
                 break;

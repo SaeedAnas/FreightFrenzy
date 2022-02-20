@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Math.toRadians;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
@@ -25,6 +26,7 @@ import org.firstinspires.ftc.teamcode.vision.Webcam;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Config
 public class Robot {
     public Arm arm;
     public SecondArm secondArm;
@@ -90,6 +92,7 @@ public class Robot {
         if (telemetry != null) {
             telemetry.addData("distance", sensor.getDistance());
             telemetry.addData("Arm Position", arm.getDegree());
+            telemetry.addData("ExternalHeading", drive.getExternalHeading());
 
             Pose2d poseEstimate = PoseStorage.currentPose;
             telemetry.addData("State", currentState);
@@ -97,7 +100,7 @@ public class Robot {
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
             telemetry.addData("xPos", ColorFilterPipeline.xPos);
-            telemetry.update();
+//            telemetry.update();
         }
     }
 
@@ -225,6 +228,28 @@ public class Robot {
                 new Pose2d(
                         -g.left_stick_y,
                         -g.left_stick_x,
+                        -g.right_stick_x
+                )
+        );
+    }
+
+    public void driveFieldCentric(Gamepad g) {
+        // Read pose
+        double heading = drive.getExternalHeading();
+
+        // Create a vector from the gamepad x/y inputs
+        // Then, rotate that vector by the inverse of that heading
+        Vector2d input = new Vector2d(
+                g.left_stick_y,
+                g.left_stick_x
+        ).rotated(-heading);
+
+        // Pass in the rotated input + right stick value for rotation
+        // Rotation is not part of the rotated input thus must be passed in separately
+        drive.setWeightedDrivePower(
+                new Pose2d(
+                        input.getX(),
+                        input.getY(),
                         -g.right_stick_x
                 )
         );

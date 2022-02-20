@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.teamcode.auto.Auto;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDriveCancelable;
 
 /**
@@ -19,6 +20,7 @@ public class LocalizationTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         SampleMecanumDriveCancelable drive = new SampleMecanumDriveCancelable(hardwareMap);
+        drive.setPoseEstimate(Auto.blueStartingPosition);
 
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -39,6 +41,9 @@ public class LocalizationTest extends LinearOpMode {
             telemetry.addData("x", poseEstimate.getX());
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
+            telemetry.addData("ex", drive.getExternalHeading());
+            telemetry.addData("raw", drive.getRawExternalHeading());
+            telemetry.addData("r", Math.toDegrees(drive.getRawExternalHeading()));
             telemetry.update();
         }
     }

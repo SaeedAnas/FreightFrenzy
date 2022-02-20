@@ -38,8 +38,8 @@ public class Arm extends SubsystemBase {
 
     public enum State {
         TOP(90, topv, topa),
-        MIDDLE(130, intakev, intakea),
-        BOTTOM(150, 0.13, 0.05),
+        MIDDLE(140, intakev, intakea),
+        BOTTOM(170, 0.13, 0.05),
         INTAKE(10, 0.08, 0.05),
         PROFILE(90, 0.18, 0.05),
         UP(90, 0.18, 0.05),
@@ -68,7 +68,7 @@ public class Arm extends SubsystemBase {
     public static double kD = 0;
     public static double kCos = 0.025;
     public static int dumpCloseTime = 300;
-    public static int dumpOpenTime = 1000;
+    public static int dumpOpenTime = 600;
 
     PIDCoefficients coeffs = new PIDCoefficients(kP, kI, kD);
 
@@ -144,7 +144,7 @@ public class Arm extends SubsystemBase {
         }, 300);
 
         ref.scheduleTask(() -> {
-            ref.secondArm.outtake();
+            ref.secondArm.middle();
         }, dumpOpenTime);
     }
 
@@ -155,7 +155,7 @@ public class Arm extends SubsystemBase {
             ref.intake.setState(Intake.State.OFF);
         }, 300);
         ref.scheduleTask(() -> {
-            ref.secondArm.outtake();
+            ref.secondArm.bottom();
         }, dumpOpenTime);
     }
 
