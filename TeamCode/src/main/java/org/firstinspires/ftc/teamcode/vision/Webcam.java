@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.vision;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -53,7 +52,7 @@ public class Webcam {
                 // Usually this is where you'll want to start streaming from the camera (see section 4)
 
                 camera.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
-                FtcDashboard.getInstance().startCameraStream(camera, 0);
+//                FtcDashboard.getInstance().startCameraStream(camera, 0);
             }
 
             @Override
@@ -63,6 +62,7 @@ public class Webcam {
                  */
             }
         });
+
     }
 
     public void close() {

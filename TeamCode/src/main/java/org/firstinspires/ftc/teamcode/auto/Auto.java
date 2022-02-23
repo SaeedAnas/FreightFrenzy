@@ -49,8 +49,17 @@ public class Auto extends LinearOpMode {
     public static double y = 63.5;
     public static double h = 0;
 
-    public static double topPos = 40;
+    public static double topPosX = -11;
+    public static double topPosY = 40.5;
 
+    public static double middlePosX = -13;
+    public static double middlePosY = 50;
+
+    public static double bottomPosX = -13;
+    public static double bottomPosY = 55;
+
+    public static double lx = 10;
+    public static double ly = 73.5;
 
     public void intake() {
         TrajectorySequence in = drive.trajectorySequenceBuilder(new Pose2d(-13, 44, 270))
@@ -93,63 +102,124 @@ public class Auto extends LinearOpMode {
 
         robot.stream();
 
+
+        while (!isStarted() && !isStopRequested()) {
+            double pos = ColorFilterPipeline.xPos;
+            double width = ColorFilterPipeline.boxWidth;
+            telemetry.addData("xPos", pos);
+            telemetry.addData("width", width);
+
+            if (pos > 400) {
+                telemetry.addData("Level", "TOP");
+                level = Level.TOP;
+            } else if (pos < 400 && pos > 100) {
+                telemetry.addData("Level", "MIDDLE");
+                level = Level.MIDDLE;
+            } else {
+                telemetry.addData("Level", "BOTTOM");
+                level = Level.BOTTOM;
+            }
+            telemetry.update();
+        }
+
+        double yPos;
+        double xPos;
+        switch (level) {
+            case MIDDLE: {
+                xPos = middlePosX;
+                yPos = middlePosY;
+                break;
+            }
+            case BOTTOM: {
+                xPos = bottomPosX;
+                yPos = bottomPosY;
+                break;
+            }
+            default: {
+                xPos = topPosX;
+                yPos = topPosY;
+                break;
+            }
+        }
+
+
         TrajectorySequence t = drive.trajectorySequenceBuilder(blueStartingPosition)
                 .addTemporalMarker(0.3, () -> {
-                    robot.arm.topAuto();
+                    switch (level) {
+                        case MIDDLE: {
+                            robot.arm.middle();
+                            break;
+                        }
+                        case BOTTOM: {
+                            robot.arm.bottom();
+                            break;
+                        }
+                        default: {
+                            robot.arm.topAuto();
+                        }
+                    }
+//                    robot.arm.topAuto();
+
                     System.out.println("armUp");
                 })
-                .lineToConstantHeading(new Vector2d(-13, topPos))
+                .lineToConstantHeading(new Vector2d(xPos, yPos))
                 .addTemporalMarker(() -> {
                     robot.arm.dump();
                     robot.scheduleTask(() -> robot.arm.closeArm(), 1000);
                     System.out.println("outtake");
                 })
-
-                .setVelConstraint((v, a, b, c) -> 55)
-                .setReversed(false)
-                .splineTo(new Vector2d(20, 63.5), toRadians(0))
-                .addTemporalMarker(() -> {
-                    robot.intake();
-                })
-                .lineTo(new Vector2d(44, 63.5))
-//
-                .lineTo(new Vector2d(20, 63.5))
-                .addTemporalMarker(() -> {
-                    robot.arm.topAuto();
-                })
-                .splineTo(new Vector2d(-13, 44), toRadians(270))
-                .addTemporalMarker(() -> {
-                    robot.arm.dump();
-                    robot.scheduleTask(() -> robot.arm.closeArm(), 1000);
-                    System.out.println("outtake");
-                })
-
-//
-                .setReversed(false)
-                .splineTo(new Vector2d(20, 63.5), toRadians(0))
-                .addTemporalMarker(() -> {
-                    robot.intake();
-                })
-                .lineTo(new Vector2d(44, 63.5))
-
-                .lineTo(new Vector2d(20, 63.5))
-                .addTemporalMarker(() -> {
-                    robot.arm.topAuto();
-                })
-                .splineTo(new Vector2d(-13, 44), toRadians(270))
-                .addTemporalMarker(() -> {
-                    robot.arm.dump();
-                    robot.scheduleTask(() -> robot.arm.closeArm(), 1000);
-                    System.out.println("outtake");
-                })
-
-//
-                .setReversed(false)
-                .splineTo(new Vector2d(20, 63.5), toRadians(0))
+                .setVelConstraint((v, a, b, c) -> 20)
+//                .lineTo(new Vector2d(xPos, yPos + 5))
+                .waitSeconds(1)
+                .lineTo(new Vector2d(xPos, yPos + 5))
+                .waitSeconds(1)
+                .lineToSplineHeading(new Pose2d(lx, ly, toRadians(0)))
+//                .lineTo(new Vector2d(-13, 40))
+//                .setReversed(false)
+//                .splineTo(new Vector2d(30, 65.5), toRadians(0))
 //                .addTemporalMarker(() -> {
 //                    robot.intake();
 //                })
-                .lineTo(new Vector2d(44, 63.5))
+                .lineTo(new Vector2d(35, ly))
+//                .lineTo(new Vector2d(44, 64.5))
+////
+//                .lineTo(new Vector2d(20, 64.5))
+//                .addTemporalMarker(() -> {
+//                    robot.arm.topAuto();
+//                })
+//                .splineTo(new Vector2d(-13, 44), toRadians(270))
+//                .addTemporalMarker(() -> {
+//                    robot.arm.dump();
+//                    robot.scheduleTask(() -> robot.arm.closeArm(), 1000);
+//                    System.out.println("outtake");
+//                })
+//
+////
+//                .setReversed(false)
+//                .splineTo(new Vector2d(20, 64.5), toRadians(0))
+//                .addTemporalMarker(() -> {
+//                    robot.intake();
+//                })
+//                .lineTo(new Vector2d(44, 64.5))
+//
+//                .lineTo(new Vector2d(20, 64.5))
+//                .addTemporalMarker(() -> {
+//                    robot.arm.topAuto();
+//                })
+//                .splineTo(new Vector2d(-13, 44), toRadians(270))
+//                .addTemporalMarker(() -> {
+//                    robot.arm.dump();
+//                    robot.scheduleTask(() -> robot.arm.closeArm(), 1000);
+//                    System.out.println("outtake");
+//                })
+//
+////
+//                .setReversed(false)
+//                .splineTo(new Vector2d(20, 64.5), toRadians(0))
+////                .addTemporalMarker(() -> {
+////                    robot.intake();
+////                })
+//                .lineTo(new Vector2d(44, 64.5))
 
 //
 //                .lineTo(new Vector2d(20, 63.5))
@@ -179,16 +249,9 @@ public class Auto extends LinearOpMode {
 
         robot.stopStreaming();
 
-        double pos = ColorFilterPipeline.xPos;
+//            telemetry.addData("xPos", ColorFilterPipeline.xPos);
+        telemetry.update();
 
-        if (pos < 250) {
-            telemetry.addData("Level", "BOTTOM");
-        } else if (pos < 550) {
-            telemetry.addData("Level", "MIDDLE");
-        } else {
-            telemetry.addData("Level", "TOP");
-        }
-       
         if (isStopRequested()) return;
 
 //        toHubStart(level);

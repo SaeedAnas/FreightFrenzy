@@ -70,20 +70,20 @@ public class ColorFilterPipeline extends OpenCvPipeline {
 //        telemetry.addData("[Lower Scalar]", lower);
 //        telemetry.addData("[Upper Scalar]", upper);
 //
-//        contours.sort((c1, c2) -> boundingRect(c2).width * boundingRect(c2).height - boundingRect(c1).width * boundingRect(c1).height);
+        contours.sort((c1, c2) -> boundingRect(c2).width * boundingRect(c2).height - boundingRect(c1).width * boundingRect(c1).height);
 //        telemetry.addData("numContours:", contours.size());
 //
 //        telemetry.update();
 
         if (contours.size() > 0) {
-             for (int i = 0; i < contours.size(); i ++) {
-                 int x = boundingRect(contours.get(i)).x;
-                 int y = boundingRect(contours.get(i)).y;
-                 int width = boundingRect(contours.get(i)).width;
-                 int height = boundingRect(contours.get(i)).height;
-                 rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
-                 xPos = (int) (x + width/2);
-             }
+            for (int i = 0; i < contours.size(); i++) {
+                int x = boundingRect(contours.get(i)).x;
+                int y = boundingRect(contours.get(i)).y;
+                int width = boundingRect(contours.get(i)).width;
+                int height = boundingRect(contours.get(i)).height;
+                rectangle(input, new Point(x, y), new Point((x + width), (y + height)), new Scalar(0, 0, 255), 2);
+                xPos = (int) (x + width / 2);
+            }
 
             int x = boundingRect(contours.get(0)).x;
             int y = boundingRect(contours.get(0)).y;

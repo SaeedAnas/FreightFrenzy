@@ -32,9 +32,9 @@ public class VisionOpMode extends LinearOpMode {
             telemetry.addData("xPos", pos);
             telemetry.addData("width", width);
 
-            if (pos > 500) {
+            if (pos > 400 && width > 100) {
                 telemetry.addData("Level", "TOP");
-            } else if (pos < 500 && pos > 100) {
+            } else if (pos < 400 && pos > 100 && width > 100) {
                 telemetry.addData("Level", "MIDDLE");
             } else {
                 telemetry.addData("Level", "BOTTOM");

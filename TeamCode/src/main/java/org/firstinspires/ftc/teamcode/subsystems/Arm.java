@@ -67,7 +67,7 @@ public class Arm extends SubsystemBase {
     public static double kI = 0;
     public static double kD = 0;
     public static double kCos = 0.025;
-    public static int dumpCloseTime = 300;
+    public static int dumpCloseTime = 400;
     public static int dumpOpenTime = 600;
 
     PIDCoefficients coeffs = new PIDCoefficients(kP, kI, kD);
